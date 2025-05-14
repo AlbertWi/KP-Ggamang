@@ -1,0 +1,86 @@
+<aside class="main-sidebar sidebar-dark-primary elevation-4">
+    <a href="{{ route('dashboard') }}" class="brand-link">
+      <span class="brand-text font-weight-light">Toko HP</span>
+    </a>
+
+    <div class="sidebar">
+      <nav class="mt-2">
+        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
+          <li class="nav-item">
+            <a href="{{ route('dashboard') }}" class="nav-link">
+              <i class="nav-icon fas fa-tachometer-alt"></i>
+              <p>Dashboard</p>
+            </a>
+          </li>
+
+          @if(Auth::check() && Auth::user()->role === 'admin')
+            <li class="nav-item">
+              <a href="{{ route('products.index') }}" class="nav-link">
+                <i class="nav-icon fas fa-box"></i>
+                <p>Master Stock</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{{ route('suppliers.index') }}" class="nav-link">
+                <i class="nav-icon fas fa-truck"></i>
+                <p>Supplier</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{{ route('purchases.index') }}" class="nav-link">
+                <i class="nav-icon fas fa-cart-plus"></i>
+                <p>Pembelian</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{{ route('stock-transfers.index') }}" class="nav-link">
+                <i class="nav-icon fas fa-exchange-alt"></i>
+                <p>Transfer Stok</p>
+              </a>
+            </li>
+
+          @elseif(Auth::check() && Auth::user()->role === 'kepala_toko')
+            <li class="nav-item">
+              <a href="{{ route('sales.index') }}" class="nav-link">
+                <i class="nav-icon fas fa-cash-register"></i>
+                <p>Penjualan</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{{ route('stock-transfers.index') }}" class="nav-link">
+                <i class="nav-icon fas fa-exchange-alt"></i>
+                <p>Transfer Stok</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{{ route('purchases.index') }}" class="nav-link">
+                <i class="nav-icon fas fa-cart-plus"></i>
+                <p>Pembelian Eksternal</p>
+              </a>
+            </li>
+
+          @elseif(Auth::check() && Auth::user()->role === 'owner')
+            <li class="nav-item">
+              <a href="{{ route('inventory.index') }}" class="nav-link">
+                <i class="nav-icon fas fa-boxes"></i>
+                <p>Stok</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{{ route('branches.index') }}" class="nav-link">
+                <i class="nav-icon fas fa-store"></i>
+                <p>Manajemen Cabang</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{{ route('users.index') }}" class="nav-link">
+                <i class="nav-icon fas fa-users-cog"></i>
+                <p>Manajemen User</p>
+              </a>
+            </li>
+          @endif
+
+        </ul>
+      </nav>
+    </div>
+  </aside>
