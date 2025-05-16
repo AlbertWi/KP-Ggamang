@@ -67,18 +67,18 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:kepala_toko')->group(function () {
         Route::apiResource('sales', SaleController::class)->only(['index', 'show', 'store']);
         Route::apiResource('sale-items', SaleItemController::class)->only(['index', 'show']);
-        Route::get('suppliers', [SupplierController::class, 'index']);
-        Route::get('suppliers/{id}', [SupplierController::class, 'show']);
-        Route::get('products', [ProductController::class, 'index']);
+        //Route::get('suppliers', [SupplierController::class, 'index']);
+        //Route::get('suppliers/{id}', [SupplierController::class, 'show']);
+        //Route::get('products', [ProductController::class, 'index']);
         //Route::get('inventory-items', [InventoryItemController::class, 'index'])->name('inventory-items.index');
         Route::apiResource('stock-transfers', StockTransferController::class)->only(['index', 'show', 'store']);
     });
 
     Route::middleware('role:admin')->group(function () {
         Route::apiResource('products', ProductController::class)->only(['index', 'show', 'store','create']);
-        Route::apiResource('suppliers', SupplierController::class);
-        Route::apiResource('purchases', PurchaseController::class)->only(['index', 'show', 'store']);
+        Route::resource('suppliers', SupplierController::class);
+        Route::resource('purchases', PurchaseController::class);
         Route::apiResource('purchase-items', PurchaseItemController::class)->only(['index', 'show']);
-        Route::apiResource('stock-transfers', StockTransferController::class)->only(['index', 'show', 'store']);
+        Route::resource('stock-transfers', StockTransferController::class);
     });
 });

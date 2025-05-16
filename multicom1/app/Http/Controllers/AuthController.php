@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
+use App\Models\InventoryItem;
 
 class AuthController extends Controller
 {
@@ -62,7 +63,12 @@ public function dashboard()
         case 'kepala_toko':
             return view('dashboard.kepala_toko');
         case 'owner':
-            return view('dashboard.owner');
+            return view('dashboard.owner', [
+                'totalStock' => \App\Models\InventoryItem::sum('imei'),
+                'totalBranches' => \App\Models\Branch::count(),
+                'totalAdmins' => \App\Models\User::whereIn('role', ['admin', 'kepala_toko'])->count(),
+                ]);
+
         default:
             return redirect()->route('login');
     }

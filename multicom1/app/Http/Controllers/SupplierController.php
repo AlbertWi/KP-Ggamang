@@ -9,7 +9,13 @@ class SupplierController extends Controller
 {
     public function index()
     {
-        return Supplier::all();
+        $suppliers = Supplier::all();
+        return view('admin.suppliers.index', compact('suppliers'));
+    }
+
+    public function create()
+    {
+        return view('admin.suppliers.create');
     }
 
     public function store(Request $request)
@@ -19,12 +25,21 @@ class SupplierController extends Controller
             'type' => 'required|in:internal,external'
         ]);
 
-        return Supplier::create($validated);
+        Supplier::create($validated);
+
+        return redirect()->route('suppliers.index')->with('success', 'Supplier berhasil ditambahkan.');
     }
 
     public function show($id)
     {
-        return Supplier::findOrFail($id);
+        $supplier = Supplier::findOrFail($id);
+        return view('admin.suppliers.show', compact('supplier'));
+    }
+
+    public function edit($id)
+    {
+        $supplier = Supplier::findOrFail($id);
+        return view('admin.suppliers.edit', compact('supplier'));
     }
 
     public function update(Request $request, $id)
@@ -32,13 +47,13 @@ class SupplierController extends Controller
         $supplier = Supplier::findOrFail($id);
 
         $validated = $request->validate([
-            'name' => 'sometimes|string|max:255',
-            'type' => 'sometimes|in:internal,external'
+            'name' => 'required|string|max:255',
+            'type' => 'required|in:internal,external'
         ]);
 
         $supplier->update($validated);
 
-        return $supplier;
+        return redirect()->route('suppliers.index')->with('success', 'Supplier berhasil diperbarui.');
     }
 
     public function destroy($id)
@@ -46,6 +61,6 @@ class SupplierController extends Controller
         $supplier = Supplier::findOrFail($id);
         $supplier->delete();
 
-        return response()->json(['message' => 'Supplier deleted successfully']);
+        return redirect()->route('suppliers.index')->with('success', 'Supplier berhasil dihapus.');
     }
 }

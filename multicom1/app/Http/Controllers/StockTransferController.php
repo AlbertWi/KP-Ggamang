@@ -10,14 +10,12 @@ use Illuminate\Http\Request;
 
 class StockTransferController extends Controller
 {
-    // Tampilkan daftar transfer stok
     public function index()
     {
         $stockTransfers = StockTransfer::with(['fromBranch', 'toBranch'])->latest()->get();
         return view('admin.stock_transfers.index', compact('stockTransfers'));
     }
 
-    // Tampilkan form tambah transfer
     public function create()
     {
         $branches = Branch::all();
