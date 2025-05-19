@@ -54,20 +54,30 @@ public function dashboard()
     // Redirect to role-specific dashboard
     switch ($user->role) {
         case 'admin':
-            return view('dashboard.admin',[
+            return view('dashboard.admin', [
                 'totalProducts' => \App\Models\Product::count(),
                 'totalSuppliers' => \App\Models\Supplier::count(),
                 'totalPurchases' => \App\Models\Purchase::count(),
                 'totalTransfers' => \App\Models\StockTransfer::count(),
             ]);
+
         case 'kepala_toko':
-            return view('dashboard.kepala_toko');
+            return view('dashboard.kepala_toko', [
+                'productCount' => \App\Models\Product::count(),
+                'purchaseCount' => \App\Models\Purchase::count(),
+                'supplierCount' => \App\Models\Supplier::count(),
+                'transferCount' => \App\Models\StockTransfer::count(),
+                'totalPurchases' => \App\Models\Purchase::where('branch_id', $user->branch_id)->count(),
+                'totalTransfersIn' => \App\Models\StockTransfer::where('to_branch_id', $user->branch_id)->count(),
+                'totalTransfersOut' => \App\Models\StockTransfer::where('from_branch_id', $user->branch_id)->count(),
+            ]);
+
         case 'owner':
             return view('dashboard.owner', [
                 'totalStock' => \App\Models\InventoryItem::sum('imei'),
                 'totalBranches' => \App\Models\Branch::count(),
                 'totalAdmins' => \App\Models\User::whereIn('role', ['admin', 'kepala_toko'])->count(),
-                ]);
+            ]);
 
         default:
             return redirect()->route('login');
