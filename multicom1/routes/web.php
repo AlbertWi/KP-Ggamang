@@ -13,7 +13,8 @@ use App\Http\Controllers\{
     SaleItemController,
     StockTransferController,
     StockTransferItemController,
-    AuthController
+    AuthController,
+    BrandController
 };
 
 // === AUTH ROUTES ===
@@ -58,26 +59,16 @@ Route::middleware('auth')->group(function () {
 
     // === ADMIN ===
     Route::middleware('role:admin')->group(function () {
-        Route::apiResource('products', ProductController::class)->only(['index', 'show', 'store','create']);
+        Route::Resource('products', ProductController::class);
         Route::resource('suppliers', SupplierController::class);
-        //Route::resource('purchases', PurchaseController::class);
-        Route::apiResource('purchase-items', PurchaseItemController::class)->only(['index', 'show']);
-        //Route::resource('stock-transfers', StockTransferController::class);
+        Route::Resource('purchase-items', PurchaseItemController::class);
+        Route::resource('purchases', PurchaseController::class);
+        Route::resource('brands', BrandController::class);
     });
 
     // === KEPALA TOKO ===
     Route::middleware('role:kepala_toko')->group(function () {
-
-        // Produk & Supplier (Index only)
         Route::resource('product', ProductController::class);
-
-        // Purchases
-        //Route::resource('purchases', PurchaseController::class);
-
-        // Stock Transfers
-        //Route::resource('stock-transfers', StockTransferController::class);
-
-        // Sales
         Route::resource('sales', SaleController::class);
     });
 });

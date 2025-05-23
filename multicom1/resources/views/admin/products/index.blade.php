@@ -1,4 +1,3 @@
-{{-- resources/views/admin/products/index.blade.php --}}
 @extends('layouts.app')
 
 @section('title', 'Manajemen Produk')
@@ -17,8 +16,6 @@
                     <th>#</th>
                     <th>Nama Produk</th>
                     <th>Merek</th>
-                    <th>Harga</th>
-                    <th>Stok Total</th>
                     <th>Aksi</th>
                 </tr>
             </thead>
@@ -27,9 +24,7 @@
                 <tr>
                     <td>{{ $loop->iteration }}</td>
                     <td>{{ $product->name }}</td>
-                    <td>{{ $product->brand }}</td>
-                    <td>Rp {{ number_format($product->price, 0, ',', '.') }}</td>
-                    <td>{{ $product->stock_total ?? '-' }}</td>
+                    <td>{{ $product->brand->name ?? '-' }}</td>
                     <td>
                         <a href="{{ route('products.edit', $product->id) }}" class="btn btn-sm btn-warning">
                             <i class="fas fa-edit"></i> Edit

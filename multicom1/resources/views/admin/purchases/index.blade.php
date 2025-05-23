@@ -15,25 +15,34 @@
                     <th>Tanggal</th>
                     <th>Supplier</th>
                     <th>Total</th>
+                    <th>Nama Produk</th>
                     <th>Aksi</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach($purchases as $purchase)
-                <tr>
-                    <td>{{ $purchase->purchase_date }}</td>
-                    <td>{{ $purchase->supplier->name }}</td>
-                    <td>Rp{{ number_format($purchase->total, 0, ',', '.') }}</td>
-                    <td>
-                        <a href="{{ route('purchases.show', $purchase->id) }}" class="btn btn-sm btn-info">Detail</a>
-                    </td>
-                </tr>
-                @endforeach
-                @if($purchases->isEmpty())
-                <tr>
-                    <td colspan="4" class="text-center">Belum ada data pembelian</td>
-                </tr>
-                @endif
+                @forelse($purchases as $purchase)
+                    <tr>
+                        <td>{{ $purchase->created_at->format('d-m-Y') }}</td>
+                        <td>{{ $purchase->supplier->name }}</td>
+                        <td>{{ number_format($purchase->items->sum('price'), 0, ',', '.') }}</td>
+                        <td>
+                            <ul>
+                                @foreach($purchase->items as $item)
+                                    <li>{{ $item->product->name }}</li>
+                                @endforeach
+                            </ul>
+                        </td>
+                        <td>
+                            <a href="{{ route('purchases.show', $purchase->id) }}" class="btn btn-sm btn-info">Detail</a>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="5" class="text-center">Belum ada data pembelian</td>
+                    </tr>
+                @endforelse
+            </tbody>
+
             </tbody>
         </table>
     </div>

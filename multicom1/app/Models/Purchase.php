@@ -9,7 +9,7 @@ class Purchase extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'branch_id', 'supplier_id'];
+    protected $fillable = ['user_id', 'branch_id', 'supplier_id', 'purchase_date'];
 
     public function user() {
         return $this->belongsTo(User::class);

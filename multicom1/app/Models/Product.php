@@ -9,9 +9,13 @@ class Product extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['brand', 'model'];
+    protected $fillable = ['name','brand_id'];
 
     public function inventoryItems() {
         return $this->hasMany(InventoryItem::class);
+    }
+    public function brand()
+    {
+        return $this->belongsTo(Brand::class);
     }
 }

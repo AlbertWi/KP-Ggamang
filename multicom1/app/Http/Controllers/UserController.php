@@ -23,20 +23,26 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:6',
-            'role' => 'required|in:admin,kepala_toko,owner',
-            'branch_id' => 'nullable|exists:branches,id'
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|string|email|max:255|unique:users',
+        'password' => 'required|string|min:6|confirmed',
+        'role' => 'required|in:admin,kepala_toko',
+        'branch_id' => 'required|exists:branches,id',
         ]);
 
-        $validated['password'] = Hash::make($validated['password']);
+    // Cek apakah sudah ada user dengan cabang dan role yang sama
+    $exists = \App\Models\User::where('branch_id', $validated['branch_id'])
+                ->where('role', $validated['role'])
+                ->exists();
 
-        User::create($validated);
-        return redirect()->route('users.index')->with('success', 'User berhasil dibuat.');
+    if ($exists) {
+        return back()->withErrors(['branch_id' => 'User dengan peran ini sudah terdaftar untuk cabang tersebut.'])->withInput();
+        }
+    $validated['password'] = bcrypt($validated['password']);
+    \App\Models\User::create($validated);
+    return redirect()->route('users.index')->with('success', 'User berhasil ditambahkan');
     }
-
     public function show($id)
     {
         $user = User::findOrFail($id);

@@ -18,10 +18,13 @@ class StockTransferController extends Controller
 
     public function create()
     {
-        $branches = Branch::all();
+        $userBranchId = auth()->user()->branch_id;
+        $branches = Branch::where('id', '!=', $userBranchId)->get();
         $products = Product::all();
-        return view('admin.stock_transfers.create', compact('branches', 'products'));
+
+        return view('admin.stock_transfers.create', compact('branches', 'products', 'userBranchId'));
     }
+
 
     // Simpan data transfer stok baru
     public function store(Request $request)

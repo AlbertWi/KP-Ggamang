@@ -14,12 +14,29 @@
           </li>
 
           @if(Auth::check() && Auth::user()->role === 'admin')
-            <li class="nav-item">
-              <a href="{{ route('products.index') }}" class="nav-link">
-                <i class="nav-icon fas fa-box"></i>
-                <p>Master Stock</p>
-              </a>
-            </li>
+          <li class="nav-item has-treeview">
+            <a href="#" class="nav-link">
+                <i class="nav-icon fas fa-boxes"></i>
+                <p>
+                    Master Stok
+                    <i class="right fas fa-angle-left"></i>
+                </p>
+            </a>
+            <ul class="nav nav-treeview">
+                <li class="nav-item">
+                    <a href="{{ route('brands.index') }}" class="nav-link">
+                        <i class="far fa-circle nav-icon"></i>
+                        <p>Buat Merek</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('products.index') }}" class="nav-link">
+                        <i class="far fa-circle nav-icon"></i>
+                        <p>Buat Produk</p>
+                    </a>
+                </li>
+            </ul>
+        </li>
             <li class="nav-item">
               <a href="{{ route('suppliers.index') }}" class="nav-link">
                 <i class="nav-icon fas fa-truck"></i>

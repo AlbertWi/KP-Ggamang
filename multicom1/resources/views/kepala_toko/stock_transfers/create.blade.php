@@ -10,23 +10,23 @@
     <form method="POST" action="{{ route('kepala_toko.stock_transfers.store') }}">
         @csrf
         <div class="card-body">
+            {{-- Tampilkan nama cabang user yang login --}}
             <div class="form-group">
                 <label>Dari Cabang</label>
-                <select name="from_branch_id" class="form-control" required>
-                    @foreach ($branches as $branch)
-                        <option value="{{ $branch->id }}">{{ $branch->name }}</option>
-                    @endforeach
-                </select>
+                <input type="text" class="form-control" value="{{ auth()->user()->branch->name }}" readonly>
+                <input type="hidden" name="from_branch_id" value="{{ auth()->user()->branch_id }}">
             </div>
             <div class="form-group">
                 <label>Ke Cabang</label>
                 <select name="to_branch_id" class="form-control" required>
+                    <option value="">-- Pilih Cabang Tujuan --</option>
                     @foreach ($branches as $branch)
-                        <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                        @if ($branch->id != auth()->user()->branch_id)
+                            <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                        @endif
                     @endforeach
                 </select>
             </div>
-
             <div id="products-wrapper">
                 <div class="product-item mb-3 border p-3 rounded">
                     <div class="form-group">

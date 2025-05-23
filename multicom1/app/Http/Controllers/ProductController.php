@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use Illuminate\Http\Request;
+use App\Models\Brand;
 
 class ProductController extends Controller
 {
@@ -15,14 +16,16 @@ class ProductController extends Controller
 
     public function create()
     {
-        return view('admin.products.create');
+        $brands = Brand::all();
+        return view('admin.products.create', compact('brands'));
     }
 
     public function store(Request $request)
     {
+
         $validated = $request->validate([
-            'brand' => 'required|string|max:255',
-            'model' => 'required|string|max:255'
+            'name' => 'required|string|max:255',
+            'brand_id' => 'required|string|max:255',
         ]);
 
         Product::create($validated);
@@ -40,7 +43,8 @@ class ProductController extends Controller
     public function edit($id)
     {
         $product = Product::findOrFail($id);
-        return view('admin.products.edit', compact('product'));
+        $brands = Brand::all();
+        return view('admin.products.edit', compact('product'),compact('brands'));
     }
 
     public function update(Request $request, $id)
@@ -48,8 +52,8 @@ class ProductController extends Controller
         $product = Product::findOrFail($id);
 
         $validated = $request->validate([
-            'brand' => 'sometimes|string|max:255',
-            'model' => 'sometimes|string|max:255'
+            'name' => 'required|string|max:255',
+            'brand_id' => 'required|exists:brands,id',
         ]);
 
         $product->update($validated);

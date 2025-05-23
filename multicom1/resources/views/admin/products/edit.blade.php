@@ -11,19 +11,25 @@
         <form action="{{ route('products.update', $product->id) }}" method="POST">
             @csrf
             @method('PUT')
+
             <div class="form-group">
                 <label for="name">Nama Produk</label>
-                <input type="text" name="name" id="name" class="form-control" value="{{ $product->name }}" required>
+                <input type="text" name="name" id="name" value="{{ old('name', $product->name) }}" class="form-control" required>
             </div>
+
             <div class="form-group">
-                <label for="brand">Merek</label>
-                <input type="text" name="brand" id="brand" class="form-control" value="{{ $product->brand }}" required>
+                <label>Merek</label>
+                <select name="brand_id" class="form-control" required>
+                    <option value="">-- Pilih Merek --</option>
+                    @foreach ($brands as $brand)
+                        <option value="{{ $brand->id }}" {{ $product->brand_id == $brand->id ? 'selected' : '' }}>
+                            {{ $brand->name }}
+                        </option>
+                    @endforeach
+                </select>
             </div>
-            <div class="form-group">
-                <label for="price">Harga</label>
-                <input type="number" name="price" id="price" class="form-control" value="{{ $product->price }}" required>
-            </div>
-            <button type="submit" class="btn btn-success mt-2">Update</button>
+
+            <button type="submit" class="btn btn-primary mt-2">Update</button>
             <a href="{{ route('products.index') }}" class="btn btn-secondary mt-2">Batal</a>
         </form>
     </div>

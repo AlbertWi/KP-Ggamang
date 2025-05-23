@@ -10,13 +10,11 @@
         <form method="POST" action="{{ route('stock-transfers.store') }}">
             @csrf
             <div class="card-body">
+                {{-- Tampilkan nama cabang user yang login --}}
                 <div class="form-group">
                     <label>Dari Cabang</label>
-                    <select name="from_branch_id" class="form-control" required>
-                        @foreach ($branches as $branch)
-                            <option value="{{ $branch->id }}">{{ $branch->name }}</option>
-                        @endforeach
-                    </select>
+                        <input type="text" class="form-control" value="{{ auth()->user()->branch->name }}" readonly>
+                        <input type="hidden" name="from_branch_id" value="{{ auth()->user()->branch_id }}">
                 </div>
                 <div class="form-group">
                     <label>Ke Cabang</label>
