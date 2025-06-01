@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "102104939012",
+    "project_id": "fitdine",
+    "storage_bucket": "fitdine.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:102104939012:android:90f295b871c16110fe9351",
+        "android_client_info": {
+          "package_name": "com.example.uas_pab"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDGRaRg4U3UNoMpQulvUFvgm7ZirSQ8uEs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
