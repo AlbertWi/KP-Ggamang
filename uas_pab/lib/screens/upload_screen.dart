@@ -14,12 +14,16 @@ class UploadScreen extends StatefulWidget {
   State<UploadScreen> createState() => _UploadScreenState();
 }
 
+enum Difficulty { easy, medium, hard }
+
 class _UploadScreenState extends State<UploadScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _ingredientsController = TextEditingController();
   final _stepsController = TextEditingController();
   final _caloriesController = TextEditingController();
+  final _cookingTimeController = TextEditingController();
+  final _servingsController = TextEditingController();
 
   File? _image;
   String? _base64Image;
@@ -27,6 +31,8 @@ class _UploadScreenState extends State<UploadScreen> {
 
   double? _latitude;
   double? _longitude;
+
+  Difficulty? _selectedDifficulty = Difficulty.easy;
 
   @override
   void initState() {
@@ -38,10 +44,8 @@ class _UploadScreenState extends State<UploadScreen> {
     bool serviceEnabled;
     LocationPermission permission;
 
-    // Check if location services are enabled
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      // Location services are not enabled, no need to request permission
       return;
     }
 
@@ -49,17 +53,14 @@ class _UploadScreenState extends State<UploadScreen> {
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        // Permissions denied
         return;
       }
     }
 
     if (permission == LocationPermission.deniedForever) {
-      // Permissions are denied forever
       return;
     }
 
-    // Get current position
     Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high);
     setState(() {
@@ -132,6 +133,11 @@ class _UploadScreenState extends State<UploadScreen> {
       String ingredients = _ingredientsController.text.trim();
       String steps = _stepsController.text.trim();
       String calories = _caloriesController.text.trim();
+      String cookingTime = _cookingTimeController.text.trim();
+      String servings = _servingsController.text.trim();
+      String difficulty = _selectedDifficulty != null
+          ? _selectedDifficulty.toString().split('.').last
+          : 'easy';
 
       Map<String, dynamic> recipeData = {
         'name': name,
@@ -139,10 +145,12 @@ class _UploadScreenState extends State<UploadScreen> {
         'ingredients': ingredients.split(',').map((e) => e.trim()).toList(),
         'steps': steps.split(',').map((e) => e.trim()).toList(),
         'calories': calories.isNotEmpty ? calories : '0',
+        'cookingTime': cookingTime,
+        'servings': servings,
+        'difficulty': difficulty,
         'createdAt': Timestamp.now(),
         'userId': currentUser.uid,
         'userEmail': currentUser.email ?? '',
-        // Kirim lokasi jika tersedia
         if (_latitude != null && _longitude != null)
           'location': {
             'latitude': _latitude,
@@ -185,9 +193,12 @@ class _UploadScreenState extends State<UploadScreen> {
     _ingredientsController.clear();
     _stepsController.clear();
     _caloriesController.clear();
+    _cookingTimeController.clear();
+    _servingsController.clear();
     setState(() {
       _image = null;
       _base64Image = null;
+      _selectedDifficulty = Difficulty.easy;
     });
   }
 
@@ -226,12 +237,32 @@ class _UploadScreenState extends State<UploadScreen> {
     );
   }
 
+  Widget _buildDifficultyRadio(Difficulty value, String label) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Radio<Difficulty>(
+          value: value,
+          groupValue: _selectedDifficulty,
+          onChanged: (Difficulty? newValue) {
+            setState(() {
+              _selectedDifficulty = newValue;
+            });
+          },
+        ),
+        Text(label),
+      ],
+    );
+  }
+
   @override
   void dispose() {
     _nameController.dispose();
     _ingredientsController.dispose();
     _stepsController.dispose();
     _caloriesController.dispose();
+    _cookingTimeController.dispose();
+    _servingsController.dispose();
     super.dispose();
   }
 
@@ -390,7 +421,147 @@ class _UploadScreenState extends State<UploadScreen> {
                 const Text("Provide the calorie count (optional)."),
                 const Divider(),
 
-                // Pilih Gambar
+                // Cooking Time
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Card(
+                    elevation: 3,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: TextFormField(
+                      controller: _cookingTimeController,
+                      decoration: const InputDecoration(
+                        labelText: 'Cooking Time',
+                        prefixIcon: Icon(Icons.timer),
+                        border: InputBorder.none,
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        hintText: 'e.g., 45 mins',
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter cooking time';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text("Enter estimated cooking time."),
+                const Divider(),
+
+                // Servings
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Card(
+                    elevation: 3,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: TextFormField(
+                      controller: _servingsController,
+                      decoration: const InputDecoration(
+                        labelText: 'Servings (number of people)',
+                        prefixIcon: Icon(Icons.people),
+                        border: InputBorder.none,
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        hintText: 'e.g., 4',
+                      ),
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter number of servings';
+                        }
+                        if (int.tryParse(value) == null) {
+                          return 'Please enter a valid number';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text("Specify how many people the recipe serves."),
+                const Divider(),
+
+                // Difficulty Radio Buttons
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Card(
+                    elevation: 3,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Difficulty',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ListTile(
+                                  title: const Text('Easy'),
+                                  leading: Radio<Difficulty>(
+                                    value: Difficulty.easy,
+                                    groupValue: _selectedDifficulty,
+                                    onChanged: (Difficulty? value) {
+                                      setState(() {
+                                        _selectedDifficulty = value;
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: ListTile(
+                                  title: const Text('Medium'),
+                                  leading: Radio<Difficulty>(
+                                    value: Difficulty.medium,
+                                    groupValue: _selectedDifficulty,
+                                    onChanged: (Difficulty? value) {
+                                      setState(() {
+                                        _selectedDifficulty = value;
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: ListTile(
+                                  title: const Text('Hard'),
+                                  leading: Radio<Difficulty>(
+                                    value: Difficulty.hard,
+                                    groupValue: _selectedDifficulty,
+                                    onChanged: (Difficulty? value) {
+                                      setState(() {
+                                        _selectedDifficulty = value;
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Upload Image Section
+                const SizedBox(height: 12),
                 const Text(
                   "Upload an Image (Optional)",
                   style: TextStyle(
@@ -444,7 +615,7 @@ class _UploadScreenState extends State<UploadScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Tombol Simpan
+                // Submit Button
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -486,7 +657,7 @@ class _UploadScreenState extends State<UploadScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                // Teks inspiratif
+                // Inspirational Text
                 const Center(
                   child: Text(
                     "Cooking is an art, share your masterpiece!",
