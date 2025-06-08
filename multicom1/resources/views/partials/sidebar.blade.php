@@ -55,6 +55,12 @@
                 <p>Transfer Stok</p>
               </a>
             </li>
+            <li class="nav-item">
+                <a href="{{ route('stocks.index') }}" class="nav-link">
+                    <i class="nav-icon fas fa-warehouse"></i>
+                    <p>Stok Cabang</p>
+                </a>
+            </li>
 
           @elseif(Auth::check() && Auth::user()->role === 'kepala_toko')
             <li class="nav-item">

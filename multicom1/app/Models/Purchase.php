@@ -23,7 +23,18 @@ class Purchase extends Model
         return $this->hasMany(PurchaseItem::class);
     }
     public function branch()
-{
+    {
     return $this->belongsTo(Branch::class);
-}
+    }
+    public function isImeiComplete()
+    {
+    foreach ($this->items as $item) {
+        foreach ($item->inventoryItems as $inv) {
+            if (is_null($inv->imei)) {
+                return false;
+            }
+        }
+    }
+    return true;
+    }
 }

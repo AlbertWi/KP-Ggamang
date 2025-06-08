@@ -16,33 +16,53 @@
                     <th>Supplier</th>
                     <th>Total</th>
                     <th>Nama Produk</th>
+                    <th>Harga</th>
                     <th>Aksi</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($purchases as $purchase)
+                    @php
+                        $isComplete = true;
+                        foreach ($purchase->items as $item) {
+                            foreach ($item->inventoryItems as $inv) {
+                                if (is_null($inv->imei)) {
+                                    $isComplete = false;
+                                    break 2;
+                                }
+                            }
+                        }
+                    @endphp
                     <tr>
                         <td>{{ $purchase->created_at->format('d-m-Y') }}</td>
                         <td>{{ $purchase->supplier->name }}</td>
-                        <td>{{ number_format($purchase->items->sum('price'), 0, ',', '.') }}</td>
+                        <td>{{ $purchase->items->sum('qty') }}</td>
                         <td>
-                            <ul>
+                            <ul class="mb-0">
                                 @foreach($purchase->items as $item)
                                     <li>{{ $item->product->name }}</li>
                                 @endforeach
                             </ul>
                         </td>
                         <td>
-                            <a href="{{ route('purchases.show', $purchase->id) }}" class="btn btn-sm btn-info">Detail</a>
+                            <ul class="mb-0">
+                                @foreach($purchase->items as $item)
+                                    <li>Rp{{ number_format($item->price, 0, ',', '.') }}</li>
+                                @endforeach
+                            </ul>
+                        </td>
+                        <td>
+                            <a href="{{ route('purchases.show', $purchase->id) }}"
+                               class="btn btn-sm {{ $isComplete ? 'btn-success' : 'btn-danger' }}">
+                                Detail
+                            </a>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="text-center">Belum ada data pembelian</td>
+                        <td colspan="6" class="text-center">Belum ada data pembelian</td>
                     </tr>
                 @endforelse
-            </tbody>
-
             </tbody>
         </table>
     </div>

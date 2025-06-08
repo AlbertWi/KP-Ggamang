@@ -4,94 +4,110 @@
 
 @section('content')
 <div class="container">
-    <h1>Tambah Pembelian</h1>
+    <h4 class="mb-4">Tambah Pembelian</h4>
+
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <ul class="mb-0">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 
     <form action="{{ route('purchases.store') }}" method="POST">
         @csrf
 
         <div class="mb-3">
-            <label for="supplier_id" class="form-label">Supplier</label>
-            <select name="supplier_id" class="form-select" required>
-                <option value="">Pilih Supplier</option>
+            <label for="supplier_id" class="form-label"><strong>Supplier</strong></label>
+            <select name="supplier_id" id="supplier_id" class="form-control" required>
+                <option value="">-- Pilih Supplier --</option>
                 @foreach ($suppliers as $supplier)
-                    <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
+                    <option value="{{ $supplier->id }}" {{ old('supplier_id') == $supplier->id ? 'selected' : '' }}>
+                        {{ $supplier->name }}
+                    </option>
                 @endforeach
             </select>
         </div>
 
-        <div class="mb-3">
-            <label for="purchase_date" class="form-label">Tanggal Pembelian</label>
-            <input type="date" name="purchase_date" class="form-control" value="{{ date('Y-m-d') }}" required>
+        <div class="mb-4">
+            <label for="purchase_date" class="form-label"><strong>Tanggal Pembelian</strong></label>
+            <input type="date" name="purchase_date" id="purchase_date" class="form-control" value="{{ old('purchase_date', date('Y-m-d')) }}" required>
         </div>
 
         <hr>
-        <h5>Produk</h5>
-        <div id="product-list">
-            <div class="row g-3 align-items-end product-item">
+        <h5 class="mb-3">Produk</h5>
+
+        <div id="product-wrapper">
+            <div class="row mb-2 product-row">
                 <div class="col-md-4">
-                    <label class="form-label">Produk</label>
-                    <select name="items[0][product_id]" class="form-select" required>
-                        <option value="">Pilih Produk</option>
+                    <select name="items[0][product_id]" class="form-control" required>
+                        <option value="">-- Pilih Produk --</option>
                         @foreach ($products as $product)
                             <option value="{{ $product->id }}">{{ $product->name }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label">Qty</label>
-                    <input type="number" name="items[0][qty]" class="form-control" min="1" required>
+                    <input type="number" name="items[0][qty]" class="form-control" placeholder="Qty" required min="1">
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Harga Satuan</label>
-                    <input type="number" name="items[0][price]" class="form-control" min="0" required>
+                    <input type="number" name="items[0][price]" class="form-control" placeholder="Harga Satuan" required min="0">
                 </div>
                 <div class="col-md-2">
-                    <button type="button" class="btn btn-danger btn-remove">Hapus</button>
+                    <button type="button" class="btn btn-danger remove-row">Hapus</button>
                 </div>
             </div>
         </div>
 
-        <button type="button" id="add-product" class="btn btn-secondary mt-3">+ Tambah Produk</button>
-        <br><br>
+        <button type="button" id="add-product" class="btn btn-secondary mt-2">+ Tambah Produk</button>
 
-        <button type="submit" class="btn btn-primary">Simpan Pembelian</button>
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">Simpan Pembelian</button>
+        </div>
     </form>
 </div>
 @endsection
 
-@section('scripts')
+@push('scripts')
 <script>
-    let productIndex = 1;
+    let index = 1;
 
     document.getElementById('add-product').addEventListener('click', function () {
-        const productList = document.getElementById('product-list');
-        const newItem = document.querySelector('.product-item').cloneNode(true);
+        const wrapper = document.getElementById('product-wrapper');
 
-        // Reset input value
-        newItem.querySelectorAll('input, select').forEach(input => {
-            input.value = '';
-        });
+        const row = document.createElement('div');
+        row.classList.add('row', 'mb-2', 'product-row');
 
-        // Update name attribute index
-        newItem.querySelectorAll('input, select').forEach(input => {
-            const name = input.getAttribute('name');
-            const newName = name.replace(/\d+/, productIndex);
-            input.setAttribute('name', newName);
-        });
+        row.innerHTML = `
+            <div class="col-md-4">
+                <select name="items[${index}][product_id]" class="form-control" required>
+                    <option value="">-- Pilih Produk --</option>
+                    @foreach ($products as $product)
+                        <option value="{{ $product->id }}">{{ $product->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="number" name="items[${index}][qty]" class="form-control" placeholder="Qty" required min="1">
+            </div>
+            <div class="col-md-3">
+                <input type="number" name="items[${index}][price]" class="form-control" placeholder="Harga Satuan" required min="0">
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-danger remove-row">Hapus</button>
+            </div>
+        `;
 
-        productList.appendChild(newItem);
-        productIndex++;
+        wrapper.appendChild(row);
+        index++;
     });
 
-    document.addEventListener('click', function (e) {
-        if (e.target.classList.contains('btn-remove')) {
-            const items = document.querySelectorAll('.product-item');
-            if (items.length > 1) {
-                e.target.closest('.product-item').remove();
-            } else {
-                alert('Minimal satu produk harus diinput.');
-            }
+    document.getElementById('product-wrapper').addEventListener('click', function (e) {
+        if (e.target.classList.contains('remove-row')) {
+            e.target.closest('.product-row').remove();
         }
     });
 </script>
-@endsection
+@endpush

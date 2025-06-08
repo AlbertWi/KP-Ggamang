@@ -23,7 +23,7 @@
                 <tbody>
                     @foreach($inventory as $item)
                     <tr>
-                        <td>{{ $item->product->brand }} {{ $item->product->type }}</td>
+                        <td>{{ $item->product->name }} {{ $item->product->name }}</td>
                         <td>{{ $item->imei ?? '-' }}</td>
                         <td>{{ $item->qty }}</td>
                     </tr>

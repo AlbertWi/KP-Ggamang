@@ -12,7 +12,6 @@ class CreatePurchaseItemsTable extends Migration
             $table->id();
             $table->foreignId('purchase_id')->constrained('purchases')->cascadeOnDelete();
             $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
-            $table->string('imei');
             $table->timestamps();
         });
     }

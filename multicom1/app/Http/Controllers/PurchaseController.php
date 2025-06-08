@@ -8,19 +8,18 @@ use App\Models\PurchaseItem;
 use App\Models\Product;
 use App\Models\Supplier;
 use App\Models\Branch;
+use App\Models\InventoryItem;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class PurchaseController extends Controller
 {
-    // Menampilkan semua pembelian
     public function index()
     {
         $purchases = Purchase::with(['supplier', 'branch'])->latest()->get();
         return view('admin.purchases.index', compact('purchases'));
     }
 
-    // Menampilkan form tambah pembelian
     public function create()
     {
         $suppliers = Supplier::all();
@@ -28,80 +27,87 @@ class PurchaseController extends Controller
         return view('admin.purchases.create', compact('suppliers', 'products'));
     }
 
-    // Menyimpan data pembelian baru
-
     public function store(Request $request)
-{
-    // Debug user authentication
-    if (!Auth::check()) {
-        return back()->withErrors(['error' => 'User tidak terautentikasi']);
-    }
-
-    $user = Auth::user();
-    if (!$user->branch_id) {
-        return back()->withErrors(['error' => 'User tidak memiliki branch_id']);
-    }
-
-    // Debug supplier existence
-    $supplier = \App\Models\Supplier::find($request->supplier_id);
-    if (!$supplier) {
-        return back()->withErrors(['error' => 'Supplier tidak ditemukan']);
-    }
-
-    // Debug products existence
-    if (!$request->items || !is_array($request->items)) {
-        return back()->withErrors(['error' => 'Items tidak valid']);
-    }
-
-    foreach ($request->items as $item) {
-        $product = \App\Models\Product::find($item['product_id']);
-        if (!$product) {
-            return back()->withErrors(['error' => "Product ID {$item['product_id']} tidak ditemukan"]);
-        }
-    }
-
-    // Validasi request
-    $request->validate([
-        'supplier_id' => 'required|exists:suppliers,id',
-        'purchase_date' => 'required|date',
-        'items' => 'required|array|min:1',
-        'items.*.product_id' => 'required|exists:products,id',
-        'items.*.qty' => 'required|numeric|min:1',
-        'items.*.price' => 'required|numeric|min:0',
-    ]);
-
-    DB::beginTransaction();
-    try {
-        // Buat Purchase
-        $purchase = Purchase::create([
-            'user_id' => Auth::id(),
-            'branch_id' => $user->branch_id,
-            'supplier_id' => $request->supplier_id,
-            'purchase_date' => $request->purchase_date,
+    {
+        $request->validate([
+            'supplier_id' => 'required|exists:suppliers,id',
+            'purchase_date' => 'required|date',
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.qty' => 'required|numeric|min:1',
+            'items.*.price' => 'required|numeric|min:0',
         ]);
 
-        // Buat Purchase Items
-        foreach ($request->items as $item) {
-            PurchaseItem::create([
-                'purchase_id' => $purchase->id,
-                'product_id' => $item['product_id'],
-                'qty' => $item['qty'],
-                'price' => $item['price'],
+        $user = Auth::user();
+        $branchId = $user->branch_id ?? Branch::first()?->id;
+
+        DB::beginTransaction();
+        try {
+            // 1. Simpan data pembelian
+            $purchase = Purchase::create([
+                'user_id' => $user->id,
+                'branch_id' => $branchId,
+                'supplier_id' => $request->supplier_id,
+                'purchase_date' => $request->purchase_date,
             ]);
+
+            // 2. Simpan item pembelian dan isi inventory_items
+            foreach ($request->items as $item) {
+                // Buat purchase item dulu
+                $purchaseItem = PurchaseItem::create([
+                    'purchase_id' => $purchase->id,
+                    'product_id' => $item['product_id'],
+                    'qty' => $item['qty'],
+                    'price' => $item['price'],
+                ]);
+
+                // Pastikan purchase item sudah ter-save dengan ID
+                $purchaseItem->refresh();
+
+                // Buat inventory items sebanyak qty dengan purchase_item_id yang benar
+                for ($i = 0; $i < $item['qty']; $i++) {
+                    InventoryItem::create([
+                        'branch_id' => $branchId,
+                        'product_id' => $item['product_id'],
+                        'imei' => null,
+                        'purchase_item_id' => $purchaseItem->id, // Pastikan ini ter-isi
+                        'status' => 'in_stock',
+                    ]);
+                }
+            }
+
+            DB::commit();
+            return redirect()->route('purchases.index')->with('success', 'Pembelian berhasil disimpan.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            // Log error untuk debugging
+            \Log::error('Purchase store error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal menyimpan pembelian: ' . $e->getMessage());
         }
-
-        DB::commit();
-        return redirect()->route('purchases.index')->with('success', 'Pembelian berhasil disimpan.');
-
-    } catch (\Exception $e) {
-        DB::rollBack();
-        \Log::error('Purchase creation failed: ' . $e->getMessage());
-        return back()->withErrors(['error' => 'Terjadi kesalahan: ' . $e->getMessage()]);
     }
-}
-    public function show(Purchase $purchase)
+
+    public function show($id)
     {
-        $purchase->load('items.product'); // Load relasi
+        $purchase = Purchase::with([
+            'supplier',
+            'branch',
+            'items.product',
+            'items.inventoryItems.product'
+        ])->findOrFail($id);
         return view('admin.purchases.show', compact('purchase'));
     }
+
+    public function saveImei(Request $request, Purchase $purchase)
+    {
+    $imeis = $request->input('imeis', []);
+
+    foreach ($imeis as $inventoryId => $imei) {
+        $inventory = InventoryItem::find($inventoryId);
+        if ($inventory && $inventory->purchase_item_id == $purchase->id) {
+            $inventory->imei = $imei;
+            $inventory->save();
+        }
+    }
+    return redirect()->route('purchases.index')->with('success', 'IMEI berhasil disimpan.');
+}
 }

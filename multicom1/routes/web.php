@@ -14,7 +14,8 @@ use App\Http\Controllers\{
     StockTransferController,
     StockTransferItemController,
     AuthController,
-    BrandController
+    BrandController,
+    StockController
 };
 
 // === AUTH ROUTES ===
@@ -46,13 +47,14 @@ Route::middleware('auth')->group(function () {
     //shared route
     Route::middleware(['auth', 'role:admin,kepala_toko'])->group(function () {
         Route::resource('purchases', PurchaseController::class);
+        Route::resource('purchase-items', PurchaseItemController::class);
         Route::resource('stock-transfers', StockTransferController::class);
     });
     // === OWNER ===
     Route::middleware('role:owner')->group(function () {
-        Route::get('inventory-items', [InventoryItemController::class, 'index'])->name('inventory.index');
-        Route::get('inventory-items/{branch}', [InventoryItemController::class, 'show'])->name('inventory.show');
-
+        //Route::get('inventory-items', [InventoryItemController::class, 'index'])->name('inventory.index');
+        //Route::get('inventory-items/{branch}', [InventoryItemController::class, 'show'])->name('inventory.show');
+        Route::resource('inventory', InventoryItemController::class);
         Route::resource('branches', BranchController::class);
         Route::resource('users', UserController::class);
     });
@@ -61,8 +63,11 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:admin')->group(function () {
         Route::Resource('products', ProductController::class);
         Route::resource('suppliers', SupplierController::class);
-        Route::Resource('purchase-items', PurchaseItemController::class);
-        Route::resource('purchases', PurchaseController::class);
+        //Route::Resource('purchase-items', PurchaseItemController::class);
+        Route::resource('stocks', StockController::class);
+        //Route::resource('purchases', PurchaseController::class);
+        Route::post('/purchases/{purchase}/save-imei', [PurchaseController::class, 'saveImei'])->name('purchases.save_imei');
+        Route::get('/stocks/imei/{product}', [StockController::class, 'showImei'])->name('stocks.imei');
         Route::resource('brands', BrandController::class);
     });
 
