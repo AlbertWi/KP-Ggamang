@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -116,6 +117,15 @@ class _UploadScreenState extends State<UploadScreen> {
   Future<void> _saveRecipe() async {
     if (!_formKey.currentState!.validate()) return;
 
+    // Check if an image has been uploaded
+    if (_base64Image == null || _base64Image!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Please upload an image to share your recipe')),
+      );
+      return;
+    }
+
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -141,6 +151,7 @@ class _UploadScreenState extends State<UploadScreen> {
 
       Map<String, dynamic> recipeData = {
         'name': name,
+        'name_lowercase': name.toLowerCase(),
         'description': 'Delicious homemade recipe',
         'ingredients': ingredients.split(',').map((e) => e.trim()).toList(),
         'steps': steps.split(',').map((e) => e.trim()).toList(),
@@ -300,7 +311,7 @@ class _UploadScreenState extends State<UploadScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                // Nama Resep
+                // Recipe Name
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: Card(
@@ -563,7 +574,7 @@ class _UploadScreenState extends State<UploadScreen> {
                 // Upload Image Section
                 const SizedBox(height: 12),
                 const Text(
-                  "Upload an Image (Optional)",
+                  "Upload an Image (Required)",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,

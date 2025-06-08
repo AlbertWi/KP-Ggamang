@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:uas_pab/screens/login_screen.dart'; // pastikan path ini benar
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -41,7 +40,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       if (userDoc.exists) {
         final data = userDoc.data() as Map<String, dynamic>;
         setState(() {
-          // Gunakan field name yang konsisten
           _nameController.text = data['name'] ?? data['username'] ?? '';
           _emailController.text = data['email'] ?? '';
           _passwordController.text = data['password'] ?? '';
@@ -72,19 +70,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _saveUserData() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      // Simpan dengan field name yang konsisten
       await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-        'name': _nameController.text, // Gunakan 'name' bukan 'username'
-        'username': _nameController
-            .text, // Tetap simpan username untuk backward compatibility
+        'name': _nameController.text,
+        'username': _nameController.text,
         'email': _emailController.text,
         'password': _passwordController.text,
         'instagram': _instagramController.text,
         'facebook': _facebookController.text,
         'tiktok': _tiktokController.text,
-        'photo': _profileImageBase64 ?? '', // Gunakan 'photo' untuk konsistensi
-        'profileImage': _profileImageBase64 ??
-            '', // Tetap simpan profileImage untuk backward compatibility
+        'photo': _profileImageBase64 ?? '',
+        'profileImage': _profileImageBase64 ?? '',
       }, SetOptions(merge: true));
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -93,15 +88,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       Navigator.pop(context);
     }
-  }
-
-  Future<void> _logout() async {
-    await FirebaseAuth.instance.signOut();
-    if (!mounted) return;
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-    );
   }
 
   @override
@@ -152,16 +138,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 minimumSize: const Size(double.infinity, 50),
               ),
               child: const Text('Save'),
-            ),
-            const SizedBox(height: 12),
-            OutlinedButton(
-              onPressed: _logout,
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(color: Colors.red.shade300),
-                foregroundColor: Colors.red,
-                minimumSize: const Size(double.infinity, 50),
-              ),
-              child: const Text('Logout'),
             ),
           ],
         ),

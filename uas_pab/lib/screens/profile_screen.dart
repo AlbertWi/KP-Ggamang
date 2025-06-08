@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:uas_pab/screens/login_screen.dart'; // pastikan path ini benar
 import 'edit_profile.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -59,6 +60,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
       // Debug log (opsional)
       print("Loaded photoBase64: ${photoBase64?.substring(0, 30)}...");
     }
+  }
+
+  Future<void> _logout() async {
+    await FirebaseAuth.instance.signOut();
+    if (!mounted) return;
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+    );
   }
 
   @override
@@ -157,6 +167,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   _buildProfileDetail('Facebook', facebook),
                   const Divider(),
                   _buildProfileDetail('TikTok', tiktok),
+                  const SizedBox(height: 20),
+                  // Logout button
+                  OutlinedButton(
+                    onPressed: _logout,
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: Colors.red.shade300),
+                      foregroundColor: Colors.red,
+                      minimumSize: const Size(double.infinity, 50),
+                    ),
+                    child: const Text('Logout'),
+                  ),
                 ],
               ),
             ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:uas_pab/screens/ai_assistant_screen.dart';
 import 'package:uas_pab/screens/bookmark_screen.dart';
 import 'package:uas_pab/screens/home_screen.dart';
 import 'package:uas_pab/screens/upload_screen.dart';
@@ -44,6 +45,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       const HomeScreen(),
       const UploadScreen(),
       const BookmarkScreen(),
+      const AiAssistantScreen(),
     ];
 
     return Scaffold(
@@ -54,6 +56,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Upload'),
           BottomNavigationBarItem(
               icon: Icon(Icons.favorite), label: 'Favourite'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.headset_mic), label: 'Ask AI')
         ],
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,

@@ -74,6 +74,7 @@ class Recipe {
   Map<String, dynamic> toMap() {
     return {
       'name': name,
+      'name_lowercase': name.toLowerCase(), // Tambahkan field ini
       'description': description,
       'image': image,
       'ingredients': ingredients,
@@ -84,6 +85,7 @@ class Recipe {
       'difficulty': difficulty,
       'latitude': latitude,
       'longitude': longitude,
+      'createdAt': FieldValue.serverTimestamp(), // Tambahkan juga timestamp
     };
   }
 }
