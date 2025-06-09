@@ -15,7 +15,6 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   String name = "Guest";
   String email = "example@gmail.com";
-  String password = "*********";
   String instagram = "";
   String facebook = "";
   String tiktok = "";
@@ -51,7 +50,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         name = data['name'] ?? data['username'] ?? 'Guest';
         email = data['email'] ?? 'example@gmail.com';
-        password = data['password'] != null ? '*********' : '*********';
         instagram = data['instagram'] ?? '';
         facebook = data['facebook'] ?? '';
         tiktok = data['tiktok'] ?? '';
@@ -159,8 +157,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   _buildProfileDetail('Name', name),
                   const Divider(),
                   _buildProfileDetail('Email', email),
-                  const Divider(),
-                  _buildProfileDetail('Password', password),
                   const Divider(),
                   _buildProfileDetail('Instagram', instagram),
                   const Divider(),

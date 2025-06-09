@@ -16,7 +16,6 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _instagramController = TextEditingController();
   final TextEditingController _facebookController = TextEditingController();
   final TextEditingController _tiktokController = TextEditingController();
@@ -42,7 +41,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         setState(() {
           _nameController.text = data['name'] ?? data['username'] ?? '';
           _emailController.text = data['email'] ?? '';
-          _passwordController.text = data['password'] ?? '';
           _instagramController.text = data['instagram'] ?? '';
           _facebookController.text = data['facebook'] ?? '';
           _tiktokController.text = data['tiktok'] ?? '';
@@ -74,7 +72,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         'name': _nameController.text,
         'username': _nameController.text,
         'email': _emailController.text,
-        'password': _passwordController.text,
         'instagram': _instagramController.text,
         'facebook': _facebookController.text,
         'tiktok': _tiktokController.text,
@@ -124,7 +121,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             const SizedBox(height: 20),
             _buildTextField('Name', _nameController),
             _buildTextField('Email', _emailController),
-            _buildTextField('Password', _passwordController, isPassword: true),
             const Divider(),
             _buildTextField('Instagram', _instagramController),
             _buildTextField('Facebook', _facebookController),
@@ -145,13 +141,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller,
-      {bool isPassword = false}) {
+  Widget _buildTextField(String label, TextEditingController controller) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextField(
         controller: controller,
-        obscureText: isPassword,
         decoration: InputDecoration(
           labelText: label,
           border: const OutlineInputBorder(),
