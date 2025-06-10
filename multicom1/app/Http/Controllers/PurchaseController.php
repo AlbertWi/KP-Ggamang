@@ -103,7 +103,7 @@ class PurchaseController extends Controller
 
     foreach ($imeis as $inventoryId => $imei) {
         $inventory = InventoryItem::find($inventoryId);
-        if ($inventory && $inventory->purchase_item_id == $purchase->id) {
+        if ($inventory && $inventory->purchaseItem->purchase_id == $purchase->id) {
             $inventory->imei = $imei;
             $inventory->save();
         }

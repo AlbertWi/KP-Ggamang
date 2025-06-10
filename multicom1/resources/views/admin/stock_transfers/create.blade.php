@@ -24,14 +24,13 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="form-group">
-                    <label>Produk</label>
-                    <select name="product_id" class="form-control" required>
-                        @foreach ($products as $product)
-                            <option value="{{ $product->id }}">{{ $product->name }} ({{ $product->brand }})</option>
-                        @endforeach
-                    </select>
-                </div>
+                <select name="product_id" class="form-control">
+    @foreach ($availableStocks as $item)
+        <option value="{{ $item->product_id }}">
+            {{ $item->product->name }} ({{ $item->qty }} tersedia)
+        </option>
+    @endforeach
+</select>
                 <div class="form-group">
                     <label>Jumlah</label>
                     <input type="number" name="quantity" class="form-control" required min="1">

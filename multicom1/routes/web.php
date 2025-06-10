@@ -15,7 +15,8 @@ use App\Http\Controllers\{
     StockTransferItemController,
     AuthController,
     BrandController,
-    StockController
+    StockController,
+    TypeController
 };
 
 // === AUTH ROUTES ===
@@ -69,6 +70,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/purchases/{purchase}/save-imei', [PurchaseController::class, 'saveImei'])->name('purchases.save_imei');
         Route::get('/stocks/imei/{product}', [StockController::class, 'showImei'])->name('stocks.imei');
         Route::resource('brands', BrandController::class);
+        Route::resource('types', TypeController::class);
     });
 
     // === KEPALA TOKO ===

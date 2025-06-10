@@ -9,7 +9,7 @@ class Product extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name','brand_id'];
+    protected $fillable = ['name','brand_id','type_id'];
 
     public function inventoryItems() {
         return $this->hasMany(InventoryItem::class);
@@ -18,4 +18,9 @@ class Product extends Model
     {
         return $this->belongsTo(Brand::class);
     }
+    public function type()
+{
+    return $this->belongsTo(Type::class);
+}
+
 }
