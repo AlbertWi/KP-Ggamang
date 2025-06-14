@@ -24,4 +24,8 @@ class InventoryItem extends Model
     {
         return $this->belongsTo(PurchaseItem::class);
     }
+    public function inventory()
+    {
+    return $this->belongsTo(Inventory::class);
+    }
 }

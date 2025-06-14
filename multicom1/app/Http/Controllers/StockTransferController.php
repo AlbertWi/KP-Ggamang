@@ -39,54 +39,47 @@ class StockTransferController extends Controller
     
 public function store(Request $request)
 {
-    $validated = $request->validate([
-        'from_branch_id' => 'required|exists:branches,id|different:to_branch_id',
+    $request->validate([
         'to_branch_id' => 'required|exists:branches,id',
-        'inventory_item_id' => 'required|exists:inventory_items,id',
-        'quantity' => 'required|integer|min:1'
+        'imeis' => 'required|array|min:1',
+        'imeis.*' => 'required|string|distinct'
     ]);
 
-    // Ambil data inventory item
-    $inventoryItem = InventoryItem::with('product')->findOrFail($validated['inventory_item_id']);
+    $fromBranchId = auth()->user()->branch_id;
+    $toBranchId = $request->to_branch_id;
+    $imeis = $request->imeis;
 
-    // Validasi: pastikan inventory sesuai cabang asal
-    if ($inventoryItem->branch_id != $validated['from_branch_id']) {
-        return back()->withErrors('Produk tidak tersedia di cabang asal yang dipilih.');
+    $inventoryItems = \App\Models\InventoryItem::whereIn('imei', $imeis)
+        ->whereHas('inventory', function ($q) use ($fromBranchId) {
+            $q->where('branch_id', $fromBranchId);
+        })
+        ->get();
+
+    if (count($inventoryItems) != count($imeis)) {
+        return back()->withErrors(['Beberapa IMEI tidak ditemukan atau tidak tersedia di cabang saat ini.'])->withInput();
     }
 
-    // Validasi: cukup stok
-    if ($validated['quantity'] > $inventoryItem->quantity) {
-        return back()->withErrors('Jumlah stok tidak mencukupi.');
-    }
+    // Simpan data transfer stok dan pindahkan itemnya
+    DB::transaction(function () use ($inventoryItems, $toBranchId) {
+        $transfer = \App\Models\StockTransfer::create([
+            'from_branch_id' => auth()->user()->branch_id,
+            'to_branch_id' => $toBranchId,
+            'user_id' => auth()->id()
+        ]);
 
-    // Buat transfer
-    $transfer = StockTransfer::create([
-        'from_branch_id' => $validated['from_branch_id'],
-        'to_branch_id' => $validated['to_branch_id'],
-    ]);
+        foreach ($inventoryItems as $item) {
+            $item->inventory->branch_id = $toBranchId;
+            $item->inventory->save();
 
-    // Buat item transfer
-    StockTransferItem::create([
-        'stock_transfer_id' => $transfer->id,
-        'product_id' => $inventoryItem->product_id,
-        'quantity' => $validated['quantity'],
-    ]);
+            $transfer->items()->create([
+                'inventory_item_id' => $item->id
+            ]);
+        }
+    });
 
-    // Kurangi stok dari cabang asal
-    $inventoryItem->decrement('quantity', $validated['quantity']);
-
-    // Tambahkan stok ke cabang tujuan (jika tidak ada, buat baru)
-    $targetInventory = InventoryItem::firstOrCreate(
-        [
-            'branch_id' => $validated['to_branch_id'],
-            'product_id' => $inventoryItem->product_id
-        ],
-        ['quantity' => 0]
-    );
-    $targetInventory->increment('quantity', $validated['quantity']);
-
-    return redirect()->route('stock-transfers.index')->with('success', 'Transfer stok berhasil disimpan.');
+    return redirect()->route('stock-transfers.index')->with('success', 'Transfer berhasil disimpan.');
 }
+
 
 
     // Tampilkan detail transfer stok

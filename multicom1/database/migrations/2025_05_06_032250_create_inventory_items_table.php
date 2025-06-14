@@ -12,7 +12,7 @@ class CreateInventoryItemsTable extends Migration
             $table->id();
             $table->foreignId('branch_id')->constrained('branches')->cascadeOnDelete();
             $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
-            $table->string('imei')->unique()->nullable();
+            $table->string('imei')->nullable();
             $table->enum('status', ['in_stock', 'sold', 'transferred'])->default('in_stock');
             $table->timestamps();
         });

@@ -18,13 +18,11 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: true, // Untuk mengatasi keyboard
+      resizeToAvoidBottomInset: true,
       body: Container(
         color: Colors.green.shade200,
         child: SafeArea(
-          // Menghindari area notch/status bar
           child: SingleChildScrollView(
-            // Mengatasi overflow saat keyboard muncul
             child: Container(
               height: MediaQuery.of(context).size.height -
                   MediaQuery.of(context).padding.top,
@@ -98,7 +96,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: () async {
                           String email = _usernameController.text.trim();
                           String password = _passwordController.text.trim();
-
                           try {
                             UserCredential userCredential = await FirebaseAuth
                                 .instance

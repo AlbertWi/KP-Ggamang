@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\Supplier;
 use App\Models\Branch;
 use App\Models\InventoryItem;
+use App\Models\Inventory;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -43,7 +44,6 @@ class PurchaseController extends Controller
 
         DB::beginTransaction();
         try {
-            // 1. Simpan data pembelian
             $purchase = Purchase::create([
                 'user_id' => $user->id,
                 'branch_id' => $branchId,
@@ -51,9 +51,7 @@ class PurchaseController extends Controller
                 'purchase_date' => $request->purchase_date,
             ]);
 
-            // 2. Simpan item pembelian dan isi inventory_items
             foreach ($request->items as $item) {
-                // Buat purchase item dulu
                 $purchaseItem = PurchaseItem::create([
                     'purchase_id' => $purchase->id,
                     'product_id' => $item['product_id'],
@@ -61,16 +59,22 @@ class PurchaseController extends Controller
                     'price' => $item['price'],
                 ]);
 
-                // Pastikan purchase item sudah ter-save dengan ID
                 $purchaseItem->refresh();
 
-                // Buat inventory items sebanyak qty dengan purchase_item_id yang benar
+                // Buat inventory master
+                $inventory = Inventory::firstOrCreate([
+                    'product_id' => $item['product_id'],
+                    'branch_id' => $branchId,
+                ]);
+
+                // Buat inventory items
                 for ($i = 0; $i < $item['qty']; $i++) {
                     InventoryItem::create([
                         'branch_id' => $branchId,
                         'product_id' => $item['product_id'],
+                        'inventory_id' => $inventory->id,
                         'imei' => null,
-                        'purchase_item_id' => $purchaseItem->id, // Pastikan ini ter-isi
+                        'purchase_item_id' => $purchaseItem->id,
                         'status' => 'in_stock',
                     ]);
                 }
@@ -80,7 +84,6 @@ class PurchaseController extends Controller
             return redirect()->route('purchases.index')->with('success', 'Pembelian berhasil disimpan.');
         } catch (\Exception $e) {
             DB::rollBack();
-            // Log error untuk debugging
             \Log::error('Purchase store error: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Gagal menyimpan pembelian: ' . $e->getMessage());
         }
@@ -99,15 +102,44 @@ class PurchaseController extends Controller
 
     public function saveImei(Request $request, Purchase $purchase)
     {
-    $imeis = $request->input('imeis', []);
+        $imeis = $request->input('imeis', []);
 
-    foreach ($imeis as $inventoryId => $imei) {
-        $inventory = InventoryItem::find($inventoryId);
-        if ($inventory && $inventory->purchaseItem->purchase_id == $purchase->id) {
-            $inventory->imei = $imei;
+        $allInventories = $purchase->items->flatMap(function ($item) {
+            return $item->inventoryItems;
+        });
+
+        foreach ($allInventories as $inventory) {
+            $inputImei = $imeis[$inventory->id] ?? null;
+            if (!$inputImei) continue;
+
+            $product = $inventory->product;
+            $type_id = $product->type_id;
+
+            // Validasi IMEI tidak boleh ganda di produk dengan tipe sama
+            $duplicate = InventoryItem::where('imei', $inputImei)
+                ->whereHas('product', function ($query) use ($type_id) {
+                    $query->where('type_id', $type_id);
+                })
+                ->where('id', '!=', $inventory->id)
+                ->exists();
+
+            if ($duplicate) {
+                return back()->withErrors([
+                    'IMEI ' . $inputImei . ' sudah digunakan pada produk dengan tipe yang sama.'
+                ])->withInput();
+            }
+
+            // Tambah atau ambil inventory master
+            $inv = Inventory::firstOrCreate([
+                'product_id' => $product->id,
+                'branch_id' => $inventory->branch_id,
+            ]);
+
+            $inventory->imei = $inputImei;
+            $inventory->inventory_id = $inv->id;
             $inventory->save();
         }
+
+        return redirect()->route('purchases.index')->with('success', 'IMEI berhasil disimpan.');
     }
-    return redirect()->route('purchases.index')->with('success', 'IMEI berhasil disimpan.');
-}
 }
