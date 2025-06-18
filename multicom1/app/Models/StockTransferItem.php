@@ -18,8 +18,8 @@ class StockTransferItem extends Model
     public function inventoryItem() {
         return $this->belongsTo(InventoryItem::class);
     }
-    public function product()
-{
-    return $this->belongsTo(Product::class);
-}
+    
+    public function product(){
+        return $this->belongsTo(Product::class);
+    }
 }

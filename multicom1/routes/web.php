@@ -16,7 +16,9 @@ use App\Http\Controllers\{
     AuthController,
     BrandController,
     StockController,
-    TypeController
+    TypeController,
+    StockRequestController,
+    BranchStockController
 };
 
 // === AUTH ROUTES ===
@@ -51,6 +53,10 @@ Route::middleware('auth')->group(function () {
         Route::resource('purchase-items', PurchaseItemController::class);
         Route::resource('stock-transfers', StockTransferController::class);
     });
+
+    Route::middleware(['auth', 'role:owner,kepala_toko'])->group(function () {
+        Route::get('/stok-cabang', [\App\Http\Controllers\BranchStockController::class, 'index'])->name('kepala.stok-cabang');
+    });
     // === OWNER ===
     Route::middleware('role:owner')->group(function () {
         //Route::get('inventory-items', [InventoryItemController::class, 'index'])->name('inventory.index');
@@ -77,5 +83,11 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:kepala_toko')->group(function () {
         Route::resource('product', ProductController::class);
         Route::resource('sales', SaleController::class);
+        Route::resource('stock-requests', StockRequestController::class);
+        Route::post('stock-requests/{id}/approve', [StockRequestController::class, 'approve'])
+            ->name('stock-requests.approve');
+        Route::post('stock-requests/{id}/reject', [StockRequestController::class, 'reject'])
+            ->name('stock-requests.reject');
+
     });
 });

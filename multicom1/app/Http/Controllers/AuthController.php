@@ -59,17 +59,39 @@ public function dashboard()
                 'totalSuppliers' => \App\Models\Supplier::count(),
                 'totalPurchases' => \App\Models\Purchase::count(),
                 'totalTransfers' => \App\Models\StockTransfer::count(),
+                'totalStockRequests' => \App\Models\StockRequest::count(),
+                'pendingStockRequests' => \App\Models\StockRequest::where('status', 'pending')->count(),
             ]);
 
         case 'kepala_toko':
+            $branchId = $user->branch_id;
+            
+            // Data untuk stock requests
+            $pendingRequestsCount = \App\Models\StockRequest::where('to_branch_id', $branchId)
+                                                          ->where('status', 'pending')
+                                                          ->count();
+            
+            $pendingRequests = \App\Models\StockRequest::where('to_branch_id', $branchId)
+                                                     ->where('status', 'pending')
+                                                     ->with(['fromBranch', 'product'])
+                                                     ->orderBy('created_at', 'desc')
+                                                     ->limit(5)
+                                                     ->get();
+
             return view('dashboard.kepala_toko', [
                 'productCount' => \App\Models\Product::count(),
                 'purchaseCount' => \App\Models\Purchase::count(),
                 'supplierCount' => \App\Models\Supplier::count(),
                 'transferCount' => \App\Models\StockTransfer::count(),
-                'totalPurchases' => \App\Models\Purchase::where('branch_id', $user->branch_id)->count(),
-                'totalTransfersIn' => \App\Models\StockTransfer::where('to_branch_id', $user->branch_id)->count(),
-                'totalTransfersOut' => \App\Models\StockTransfer::where('from_branch_id', $user->branch_id)->count(),
+                'totalPurchases' => \App\Models\Purchase::where('branch_id', $branchId)->count(),
+                'totalTransfersIn' => \App\Models\StockTransfer::where('to_branch_id', $branchId)->count(),
+                'totalTransfersOut' => \App\Models\StockTransfer::where('from_branch_id', $branchId)->count(),
+                
+                // Data stock requests
+                'pendingRequestsCount' => $pendingRequestsCount,
+                'pendingRequests' => $pendingRequests,
+                'totalStockRequestsIn' => \App\Models\StockRequest::where('to_branch_id', $branchId)->count(),
+                'totalStockRequestsOut' => \App\Models\StockRequest::where('from_branch_id', $branchId)->count(),
             ]);
 
         case 'owner':
@@ -77,6 +99,8 @@ public function dashboard()
                 'totalStock' => \App\Models\InventoryItem::sum('imei'),
                 'totalBranches' => \App\Models\Branch::count(),
                 'totalAdmins' => \App\Models\User::whereIn('role', ['admin', 'kepala_toko'])->count(),
+                'totalStockRequests' => \App\Models\StockRequest::count(),
+                'pendingStockRequests' => \App\Models\StockRequest::where('status', 'pending')->count(),
             ]);
 
         default:

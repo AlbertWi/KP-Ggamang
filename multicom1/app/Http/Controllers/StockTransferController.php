@@ -14,9 +14,18 @@ class StockTransferController extends Controller
 {
     public function index()
     {
-        $stockTransfers = StockTransfer::with(['fromBranch', 'toBranch'])->latest()->get();
-        return view('admin.stock_transfers.index', compact('stockTransfers'));
+    $user = auth()->user();
+
+    if ($user->role === 'kepala_toko') {
+        $stockTransfers = StockTransfer::where('from_branch_id', $user->branch_id)
+                    ->orWhere('to_branch_id', $user->branch_id)
+                    ->latest()->get();
+    } else {
+        $stockTransfers = StockTransfer::latest()->get();
     }
+
+    return view('kepala_toko.stock_transfers.index', compact('stockTransfers'));
+    }   
 
     public function create()
     {
@@ -37,55 +46,106 @@ class StockTransferController extends Controller
 
     // Simpan data transfer stok baru
     
-public function store(Request $request)
-{
-    $request->validate([
-        'to_branch_id' => 'required|exists:branches,id',
-        'imeis' => 'required|array|min:1',
-        'imeis.*' => 'required|string|distinct'
-    ]);
-
-    $fromBranchId = auth()->user()->branch_id;
-    $toBranchId = $request->to_branch_id;
-    $imeis = $request->imeis;
-
-    $inventoryItems = \App\Models\InventoryItem::whereIn('imei', $imeis)
-        ->whereHas('inventory', function ($q) use ($fromBranchId) {
-            $q->where('branch_id', $fromBranchId);
-        })
-        ->get();
-
-    if (count($inventoryItems) != count($imeis)) {
-        return back()->withErrors(['Beberapa IMEI tidak ditemukan atau tidak tersedia di cabang saat ini.'])->withInput();
-    }
-
-    // Simpan data transfer stok dan pindahkan itemnya
-    DB::transaction(function () use ($inventoryItems, $toBranchId) {
-        $transfer = \App\Models\StockTransfer::create([
-            'from_branch_id' => auth()->user()->branch_id,
-            'to_branch_id' => $toBranchId,
-            'user_id' => auth()->id()
+    public function store(Request $request)
+    {
+        $request->validate([
+            'to_branch_id' => 'required|exists:branches,id',
+            'imeis' => 'required|array|min:1',
+            'imeis.*' => 'required|string|distinct'
         ]);
-
-        foreach ($inventoryItems as $item) {
-            $item->inventory->branch_id = $toBranchId;
-            $item->inventory->save();
-
-            $transfer->items()->create([
-                'inventory_item_id' => $item->id
-            ]);
+    
+        $fromBranchId = auth()->user()->branch_id;
+        $toBranchId = $request->to_branch_id;
+        $imeis = $request->imeis;
+    
+        // Perbaikan: Query langsung ke inventory_items berdasarkan branch_id
+        $inventoryItems = \App\Models\InventoryItem::whereIn('imei', $imeis)
+            ->where('branch_id', $fromBranchId)
+            ->where('status', 'in_stock')
+            ->get();
+    
+        // Validasi: Pastikan semua IMEI ditemukan
+        if (count($inventoryItems) != count($imeis)) {
+            $foundImeis = $inventoryItems->pluck('imei')->toArray();
+            $missingImeis = array_diff($imeis, $foundImeis);
+            
+            return back()->withErrors([
+                'imeis' => 'IMEI tidak ditemukan atau tidak tersedia: ' . implode(', ', $missingImeis)
+            ])->withInput();
         }
-    });
-
-    return redirect()->route('stock-transfers.index')->with('success', 'Transfer berhasil disimpan.');
-}
+    
+        try {
+            DB::transaction(function () use ($inventoryItems, $toBranchId, $fromBranchId) {
+                // 1. Buat record stock transfer
+                $transfer = StockTransfer::create([
+                    'from_branch_id' => $fromBranchId,
+                    'to_branch_id' => $toBranchId,
+                    'user_id' => auth()->id()
+                ]);
+    
+                // 2. Proses setiap item
+                foreach ($inventoryItems as $item) {
+                    // Simpan item transfer
+                    $transfer->items()->create([
+                        'inventory_item_id' => $item->id
+                    ]);
+    
+                    // Update branch_id dan status inventory_item
+                    $item->update([
+                        'branch_id' => $toBranchId,
+                        'status' => 'in_stock' // Pastikan status tetap in_stock
+                    ]);
+    
+                    // Update inventory di cabang asal (kurangi)
+                    $fromInventory = \App\Models\Inventory::where([
+                        'branch_id' => $fromBranchId,
+                        'product_id' => $item->product_id,
+                    ])->first();
+    
+                    if ($fromInventory) {
+                        $fromInventory->update([
+                            'qty' => max(0, $fromInventory->qty - 1)
+                        ]);
+                    }
+    
+                    // Update inventory di cabang tujuan (tambah)
+                    $toInventory = \App\Models\Inventory::where([
+                        'branch_id' => $toBranchId,
+                        'product_id' => $item->product_id,
+                    ])->first();
+    
+                    if ($toInventory) {
+                        $toInventory->increment('qty');
+                    } else {
+                        \App\Models\Inventory::create([
+                            'branch_id' => $toBranchId,
+                            'product_id' => $item->product_id,
+                            'qty' => 1
+                        ]);
+                    }
+                }
+            });
+    
+            return redirect()->route('stock-transfers.index')
+                ->with('success', 'Transfer berhasil disimpan.');
+    
+        } catch (\Exception $e) {
+            \Log::error('Stock Transfer Error: ' . $e->getMessage());
+            
+            return back()->withErrors([
+                'error' => 'Terjadi kesalahan saat menyimpan transfer. Silakan coba lagi.'
+            ])->withInput();
+        }
+    }
 
 
 
     // Tampilkan detail transfer stok
     public function show($id)
     {
-        $stockTransfer = StockTransfer::with(['fromBranch', 'toBranch', 'items.product'])->findOrFail($id);
+        $stockTransfer = StockTransfer::with(['fromBranch', 'toBranch', 'items.inventoryItem.product'])
+                        ->findOrFail($id);
+
         return view('admin.stock_transfers.show', compact('stockTransfer'));
     }
 }

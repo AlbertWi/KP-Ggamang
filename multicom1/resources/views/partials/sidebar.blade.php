@@ -84,13 +84,25 @@
             <li class="nav-item">
               <a href="{{ route('purchases.index') }}" class="nav-link">
                 <i class="nav-icon fas fa-cart-plus"></i>
-                <p>Pembelian Eksternal</p>
+                <p>Pembelian</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{{ route('kepala.stok-cabang') }}" class="nav-link">
+                <i class="nav-icon fas fa-warehouse"></i>
+                <p>Stok Cabang</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{{ route('stock-requests.index') }}" class="nav-link">
+                <i class="nav-icon fas fa-cash-register"></i>
+                <p>Permintaan Barang</p>
               </a>
             </li>
 
           @elseif(Auth::check() && Auth::user()->role === 'owner')
             <li class="nav-item">
-              <a href="{{ route('inventory.index') }}" class="nav-link">
+              <a href="{{ route('kepala.stok-cabang') }}" class="nav-link">
                 <i class="nav-icon fas fa-boxes"></i>
                 <p>Stok</p>
               </a>

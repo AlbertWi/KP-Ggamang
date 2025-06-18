@@ -9,7 +9,6 @@ class InventoryItem extends Model
 {
     use HasFactory;
 
-    // Tambahkan purchase_item_id ke fillable
     protected $fillable = ['branch_id', 'product_id', 'imei', 'purchase_item_id', 'status'];
 
     public function branch() {
@@ -26,6 +25,6 @@ class InventoryItem extends Model
     }
     public function inventory()
     {
-    return $this->belongsTo(Inventory::class);
+        return $this->belongsTo(Inventory::class, 'inventory_id');
     }
 }

@@ -15,7 +15,7 @@
             <h5 class="mt-4">Daftar Barang</h5>
             <ul>
                 @foreach ($stockTransfer->items as $item)
-                    <li>{{ $item->product->name }} - {{ $item->quantity }} unit</li>
+                    <li>{{ $item->inventoryItem->product->name }} - IMEI: {{ $item->inventoryItem->imei }}</li>
                 @endforeach
             </ul>
         </div>

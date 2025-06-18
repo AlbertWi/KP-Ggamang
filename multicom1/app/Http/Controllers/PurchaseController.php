@@ -16,10 +16,19 @@ use Illuminate\Support\Facades\DB;
 class PurchaseController extends Controller
 {
     public function index()
-    {
-        $purchases = Purchase::with(['supplier', 'branch'])->latest()->get();
-        return view('admin.purchases.index', compact('purchases'));
+{
+    $user = auth()->user();
+
+    // Jika user adalah kepala_toko, filter hanya cabang dia
+    if ($user->role === 'kepala_toko') {
+        $purchases = Purchase::where('branch_id', $user->branch_id)->latest()->get();
+    } else {
+        // admin bisa lihat semua
+        $purchases = Purchase::latest()->get();
     }
+
+    return view('kepala_toko.purchases.index', compact('purchases'));
+}
 
     public function create()
     {
@@ -66,7 +75,9 @@ class PurchaseController extends Controller
                     'product_id' => $item['product_id'],
                     'branch_id' => $branchId,
                 ]);
-
+                $inventory->qty = ($inventory->exists ? $inventory->qty : 0) + $item['qty'];
+                $inventory->save();
+                
                 // Buat inventory items
                 for ($i = 0; $i < $item['qty']; $i++) {
                     InventoryItem::create([

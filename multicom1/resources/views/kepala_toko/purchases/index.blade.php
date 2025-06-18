@@ -7,7 +7,7 @@
     <div class="card-header">
         <h3 class="card-title">Daftar Pembelian</h3>
         <div class="card-tools">
-            <a href="{{ route('kepala_toko.purchases.create') }}" class="btn btn-sm btn-primary">
+            <a href="{{ route('purchases.create') }}" class="btn btn-sm btn-primary">
                 <i class="fas fa-plus"></i> Tambah Pembelian
             </a>
         </div>
@@ -29,8 +29,20 @@
                     <td>{{ $purchase->supplier->name }}</td>
                     <td>{{ $purchase->created_at->format('d-m-Y') }}</td>
                     <td>
-                        <a href="{{ route('kepala_toko.purchases.show', $purchase->id) }}" class="btn btn-sm btn-info">
-                            <i class="fas fa-eye"></i>
+                    @php
+                        $isComplete = true;
+                        foreach ($purchase->items as $item) {
+                            foreach ($item->inventoryItems as $inv) {
+                                if (is_null($inv->imei)) {
+                                    $isComplete = false;
+                                    break 2;
+                                }
+                            }
+                        }
+                    @endphp
+                        <a href="{{ route('purchases.show', $purchase->id) }}" 
+                        class="btn btn-sm {{ $isComplete ? 'btn-success' : 'btn-danger' }}">
+                        Detail
                         </a>
                     </td>
                 </tr>
