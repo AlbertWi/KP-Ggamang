@@ -29,4 +29,18 @@ class BrandController extends Controller
 
         return redirect()->route('brands.index')->with('success', 'Merek berhasil ditambahkan.');
     }
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255'
+        ]);
+
+        $brand = \App\Models\Brand::findOrFail($id);
+        $brand->update([
+            'name' => $request->name
+        ]);
+
+        return redirect()->route('brands.index')->with('success', 'Brand berhasil diperbarui.');
+    }
+
 }

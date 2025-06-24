@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Login - Toko HP</title>
+    <title>Login - Multicom</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link href="{{ asset('adminlte/plugins/fontawesome-free/css/all.min.css') }}" rel="stylesheet">

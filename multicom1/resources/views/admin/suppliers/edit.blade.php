@@ -17,7 +17,7 @@
             </div>
             <div class="form-group">
                 <label>No. Telepon</label>
-                <input type="text" name="phone" class="form-control" value="{{ $supplier->phone }}" required>
+                <input type="tel" name="phone" class="form-control" value="{{ $supplier->phone }}" required oninput="this.value = this.value.replace(/[^0-9]/g, '')" minlength="8" maxlength="15">
             </div>
             <div class="form-group">
                 <label>Alamat</label>

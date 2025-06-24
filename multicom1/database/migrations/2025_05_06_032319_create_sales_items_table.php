@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('sale_id')->constrained('sales')->cascadeOnDelete();
             $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
-            $table->string('imei');
+            $table->string('imei')->unique();
             $table->timestamps();
         });
     }

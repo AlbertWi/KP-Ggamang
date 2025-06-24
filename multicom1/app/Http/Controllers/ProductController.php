@@ -57,22 +57,11 @@ class ProductController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'brand_id' => 'required|exists:brands,id',
-            'type_id' => 'required|exists:types,id'
         ]);
 
         $product->update($validated);
 
         return redirect()->route('products.index')
             ->with('success', 'Product updated successfully');
-    }
-
-    public function destroy($id)
-    {
-        $product = Product::findOrFail($id);
-        $product->delete();
-
-        return redirect()->route('products.index')
-            ->with('success', 'Product deleted successfully');
     }
 }

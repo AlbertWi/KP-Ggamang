@@ -18,7 +18,7 @@
             <a href="#" class="nav-link">
                 <i class="nav-icon fas fa-boxes"></i>
                 <p>
-                    Master Stok
+                    Master
                     <i class="right fas fa-angle-left"></i>
                 </p>
             </a>
@@ -26,19 +26,19 @@
                 <li class="nav-item">
                     <a href="{{ route('brands.index') }}" class="nav-link">
                         <i class="far fa-circle nav-icon"></i>
-                        <p>Buat Merek</p>
+                        <p>Brand</p>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a href="{{ route('types.index') }}" class="nav-link">
                         <i class="far fa-circle nav-icon"></i>
-                        <p>Buat Type</p>
+                        <p>Type</p>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a href="{{ route('products.index') }}" class="nav-link">
                         <i class="far fa-circle nav-icon"></i>
-                        <p>Buat Produk</p>
+                        <p>Produk</p>
                     </a>
                 </li>
             </ul>
@@ -62,10 +62,10 @@
               </a>
             </li>
             <li class="nav-item">
-                <a href="{{ route('stocks.index') }}" class="nav-link">
-                    <i class="nav-icon fas fa-warehouse"></i>
-                    <p>Stok Cabang</p>
-                </a>
+              <a href="{{ route('kepala.stok-cabang') }}" class="nav-link">
+                <i class="nav-icon fas fa-boxes"></i>
+                <p>Stok</p>
+              </a>
             </li>
 
           @elseif(Auth::check() && Auth::user()->role === 'kepala_toko')

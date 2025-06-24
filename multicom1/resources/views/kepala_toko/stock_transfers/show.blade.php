@@ -8,27 +8,42 @@
         <h3 class="card-title">Detail Transfer Stok #{{ $stockTransfer->id }}</h3>
     </div>
     <div class="card-body">
-        <p><strong>Dari Cabang:</strong> {{ $stockTransfer->fromBranch->name }}</p>
-        <p><strong>Ke Cabang:</strong> {{ $stockTransfer->toBranch->name }}</p>
-        <p><strong>Tanggal:</strong> {{ $stockTransfer->created_at->format('d-m-Y H:i') }}</p>
-
-        <h5 class="mt-4">Produk yang Ditransfer</h5>
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>Produk</th>
-                    <th>Jumlah</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($stockTransfer->items as $item)
-                <tr>
-                    <td>{{ $item->product->name }}</td>
-                    <td>{{ $item->quantity }}</td>
-                </tr>
-                @endforeach
-            </tbody>
+        <table class="table table-sm table-bordered w-50">
+            <tr>
+                <th>Dari Cabang</th>
+                <td>{{ $stockTransfer->fromBranch->name }}</td>
+            </tr>
+            <tr>
+                <th>Ke Cabang</th>
+                <td>{{ $stockTransfer->toBranch->name }}</td>
+            </tr>
+            <tr>
+                <th>Tanggal</th>
+                <td>{{ $stockTransfer->created_at->format('d-m-Y') }}</td>
+            </tr>
         </table>
+
+        <h5 class="mt-4">Daftar Barang</h5>
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-sm">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Nama Produk</th>
+                        <th>IMEI</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($stockTransfer->items as $index => $item)
+                        <tr>
+                            <td>{{ $index + 1 }}</td>
+                            <td>{{ $item->inventoryItem->product->name }}</td>
+                            <td>{{ $item->inventoryItem->imei }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 @endsection

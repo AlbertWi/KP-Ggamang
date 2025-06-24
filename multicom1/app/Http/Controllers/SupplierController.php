@@ -22,7 +22,7 @@ class SupplierController extends Controller
     {
         $validated = $request->validate([
         'name' => 'required|string|max:255',
-        'phone' => 'required|string|max:20',
+        'phone' => 'required|digits_between:8,15|numeric',
         'address' => 'required|string',
     ]);
 
@@ -44,24 +44,20 @@ class SupplierController extends Controller
     }
 
     public function update(Request $request, $id)
-    {
-        $supplier = Supplier::findOrFail($id);
+{
+    $request->validate([
+        'name' => 'required|string|max:100',
+        'phone' => 'required|digits_between:8,15|numeric',
+        'address' => 'required|string|max:255',
+    ]);
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'type' => 'required|in:internal,external'
-        ]);
+    $supplier = Supplier::findOrFail($id);
+    $supplier->update([
+        'name' => $request->name,
+        'phone' => $request->phone,
+        'address' => $request->address,
+    ]);
 
-        $supplier->update($validated);
-
-        return redirect()->route('suppliers.index')->with('success', 'Supplier berhasil diperbarui.');
-    }
-
-    public function destroy($id)
-    {
-        $supplier = Supplier::findOrFail($id);
-        $supplier->delete();
-
-        return redirect()->route('suppliers.index')->with('success', 'Supplier berhasil dihapus.');
-    }
+    return redirect()->route('suppliers.index')->with('success', 'Supplier berhasil diperbarui.');
+}
 }

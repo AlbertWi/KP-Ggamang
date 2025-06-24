@@ -10,15 +10,6 @@
         <p><strong>Cabang:</strong> {{ $purchase->branch->name ?? 'N/A' }}</p>
     </div>
 
-    {{-- Debug info - hapus setelah masalah teratasi --}}
-    <div class="alert alert-info">
-        <p>Debug Info:</p>
-        <p>Total Items: {{ $purchase->items->count() }}</p>
-        @foreach ($purchase->items as $item)
-            <p>{{ $item->product->name }}: {{ $item->inventoryItems->count() }} inventory items</p>
-        @endforeach
-    </div>
-
     @if($purchase->items->sum(function($item) { return $item->inventoryItems->count(); }) > 0)
         <form action="{{ route('purchases.save_imei', $purchase->id) }}" method="POST">
             @csrf

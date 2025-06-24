@@ -20,13 +20,6 @@
                 <input type="email" name="email" class="form-control" required value="{{ old('email', $user->email) }}">
             </div>
             <div class="form-group">
-                <label for="role">Role</label>
-                <select name="role" class="form-control" required>
-                    <option value="admin" {{ $user->role == 'admin' ? 'selected' : '' }}>Admin</option>
-                    <option value="kepala_toko" {{ $user->role == 'kepala_toko' ? 'selected' : '' }}>Kepala Toko</option>
-                </select>
-            </div>
-            <div class="form-group">
                 <label for="password">Password (Biarkan kosong jika tidak diganti)</label>
                 <input type="password" name="password" class="form-control">
             </div>

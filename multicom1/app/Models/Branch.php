@@ -12,7 +12,7 @@ class Branch extends Model
     protected $fillable = ['name', 'code', 'address'];
 
     public function users() {
-        return $this->hasMany(User::class);
+        return $this->hasOne(User::class);
     }
 
     public function inventoryItems() {

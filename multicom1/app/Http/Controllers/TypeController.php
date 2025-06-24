@@ -44,10 +44,4 @@ class TypeController extends Controller
 
         return redirect()->route('types.index')->with('success', 'Tipe berhasil diperbarui.');
     }
-
-    public function destroy(Type $type)
-    {
-        $type->delete();
-        return redirect()->route('types.index')->with('success', 'Tipe berhasil dihapus.');
-    }
 }

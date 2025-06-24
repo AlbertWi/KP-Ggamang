@@ -17,7 +17,7 @@
 
             <div class="form-group">
                 <label>No. Telepon</label>
-                <input type="text" name="phone" class="form-control" required value="{{ old('phone') }}">
+                <input type="text" name="phone" class="form-control" required pattern="[0-9]+" minlength="8" maxlength="15">
             </div>
 
             <div class="form-group">

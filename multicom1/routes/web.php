@@ -23,22 +23,6 @@ use App\Http\Controllers\{
 
 // === AUTH ROUTES ===
 Route::get('/', fn () => redirect()->route('login'));
-
-Route::get('/debug-auth', function () {
-    return [
-        'authenticated' => auth()->check(),
-        'user' => auth()->check() ? [
-            'id' => auth()->id(),
-            'name' => auth()->user()->name ?? null,
-            'email' => auth()->user()->email ?? null,
-            'role' => auth()->user()->role ?? null
-        ] : null
-    ];
-});
-
-Route::get('/debug-owner-role', fn () => ['message' => 'You have owner access!'])->middleware(['auth', 'role:owner']);
-Route::get('/debug-admin-role', fn () => ['message' => 'You have admin access!'])->middleware(['auth', 'role:admin']);
-
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth:sanctum');
@@ -54,13 +38,11 @@ Route::middleware('auth')->group(function () {
         Route::resource('stock-transfers', StockTransferController::class);
     });
 
-    Route::middleware(['auth', 'role:owner,kepala_toko'])->group(function () {
+    Route::middleware(['auth', 'role:owner,kepala_toko,admin'])->group(function () {
         Route::get('/stok-cabang', [\App\Http\Controllers\BranchStockController::class, 'index'])->name('kepala.stok-cabang');
     });
     // === OWNER ===
     Route::middleware('role:owner')->group(function () {
-        //Route::get('inventory-items', [InventoryItemController::class, 'index'])->name('inventory.index');
-        //Route::get('inventory-items/{branch}', [InventoryItemController::class, 'show'])->name('inventory.show');
         Route::resource('inventory', InventoryItemController::class);
         Route::resource('branches', BranchController::class);
         Route::resource('users', UserController::class);
@@ -82,12 +64,16 @@ Route::middleware('auth')->group(function () {
     // === KEPALA TOKO ===
     Route::middleware('role:kepala_toko')->group(function () {
         Route::resource('product', ProductController::class);
+        Route::get('cari-produk-by-imei', [SaleController::class, 'cariByImei'])->name('cari-produk-by-imei');
+        Route::get('sales/{id}/input-imei', [SaleController::class, 'inputImei'])->name('sales.input-imei');
+        Route::post('sales/{id}/save-imei', [SaleController::class, 'saveImei'])->name('sales.save-imei');
         Route::resource('sales', SaleController::class);
+        Route::get('/search-by-imei', [SaleController::class, 'searchByImei'])->name('search.by.imei');
         Route::resource('stock-requests', StockRequestController::class);
         Route::post('stock-requests/{id}/approve', [StockRequestController::class, 'approve'])
             ->name('stock-requests.approve');
         Route::post('stock-requests/{id}/reject', [StockRequestController::class, 'reject'])
             ->name('stock-requests.reject');
-
+        
     });
 });

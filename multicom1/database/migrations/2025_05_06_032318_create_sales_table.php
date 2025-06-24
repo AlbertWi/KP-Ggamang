@@ -12,7 +12,6 @@ class CreateSalesTable extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('branch_id')->constrained('branches')->cascadeOnDelete();
-            $table->string('customer_name')->nullable();
             $table->decimal('total', 12, 2);
             $table->timestamps();
         });

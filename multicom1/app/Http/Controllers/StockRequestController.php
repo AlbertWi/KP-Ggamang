@@ -85,8 +85,8 @@ class StockRequestController extends Controller
     // Method untuk dashboard - hitung pending requests
     public function getPendingRequestsCount() {
         return StockRequest::where('to_branch_id', Auth::user()->branch_id)
-                          ->where('status', 'pending')
-                          ->count();
+                            ->where('status', 'pending')
+                            ->count();
     }
 
     // Method untuk dashboard - ambil pending requests

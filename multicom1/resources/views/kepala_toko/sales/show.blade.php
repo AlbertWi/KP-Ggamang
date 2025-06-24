@@ -4,18 +4,25 @@
 
 @section('content')
 <div class="container">
-    <h1 class="mb-4">Detail Penjualan #{{ $sale->id }}</h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Detail Penjualan #{{ $sale->id }}</h1>
+        <a href="{{ route('sales.index') }}" class="btn btn-secondary">← Kembali ke Daftar Penjualan</a>
+    </div>
 
-    <div class="mb-3">
+    <div class="mb-2">
         <strong>Tanggal:</strong> {{ $sale->created_at->format('d-m-Y H:i') }}
     </div>
 
-    <div class="mb-4">
-        <strong>Total Item:</strong> {{ $sale->items->count() }}
+    <div class="mb-2">
+        <strong>Jumlah Item:</strong> {{ $sale->items->count() }}
     </div>
 
-    <h4>Daftar Item</h4>
-    <table class="table table-bordered">
+    <div class="mb-3">
+        <strong>Total Harga:</strong> Rp{{ number_format($sale->total, 0, ',', '.') }}
+    </div>
+
+    <h4 class="mt-4">Daftar Item Terjual</h4>
+    <table class="table table-bordered table-striped">
         <thead class="table-secondary">
             <tr>
                 <th>ID Produk</th>
@@ -28,18 +35,19 @@
             @forelse ($sale->items as $item)
                 <tr>
                     <td>{{ $item->product->id ?? '-' }}</td>
-                    <td>{{ $item->product->brand ?? '' }} {{ $item->product->model ?? '' }}</td>
+                    <td>
+                        {{ $item->product->brand->name ?? '' }} 
+                        {{ $item->product->model ?? $item->product->name }}
+                    </td>
                     <td>{{ $item->imei }}</td>
                     <td>Rp{{ number_format($item->price, 0, ',', '.') }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="4">Tidak ada item dalam penjualan ini.</td>
+                    <td colspan="4" class="text-center">Tidak ada item dalam penjualan ini.</td>
                 </tr>
             @endforelse
         </tbody>
     </table>
-
-    <a href="{{ route('sales.index') }}" class="btn btn-secondary mt-3">Kembali ke Daftar Penjualan</a>
 </div>
 @endsection

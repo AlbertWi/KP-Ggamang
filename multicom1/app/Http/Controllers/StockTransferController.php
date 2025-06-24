@@ -143,9 +143,15 @@ class StockTransferController extends Controller
     // Tampilkan detail transfer stok
     public function show($id)
     {
-        $stockTransfer = StockTransfer::with(['fromBranch', 'toBranch', 'items.inventoryItem.product'])
+        $stockTransfer = \App\Models\StockTransfer::with(['fromBranch', 'toBranch', 'items.inventoryItem.product'])
                         ->findOrFail($id);
-
-        return view('admin.stock_transfers.show', compact('stockTransfer'));
+    
+        $view = match (auth()->user()->role) {
+            'admin' => 'admin.stock_transfers.show',
+            'kepala_toko' => 'kepala_toko.stock_transfers.show',
+            default => abort(403, 'Unauthorized'),
+        };
+    
+        return view($view, compact('stockTransfer'));
     }
 }
