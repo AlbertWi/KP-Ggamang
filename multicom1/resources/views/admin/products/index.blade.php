@@ -3,7 +3,17 @@
 @section('content')
 <div class="container">
     <h3>Daftar Produk</h3>
-    <a href="{{ route('products.create') }}" class="btn btn-success mb-3">+ Tambah Produk</a>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a href="{{ route('products.create') }}" class="btn btn-success">+ Tambah Produk</a>
+
+        <!-- Form pencarian -->
+        <form method="GET" action="{{ route('products.index') }}" class="d-flex" style="max-width: 300px;">
+            <input type="text" name="q" class="form-control me-2" placeholder="Cari nama produk..." value="{{ request('q') }}">
+            <button type="submit" class="btn btn-primary">Cari</button>
+        </form>
+    </div>
+
     <table class="table table-bordered table-striped">
         <thead class="table-dark">
             <tr>
@@ -15,7 +25,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach($products as $product)
+            @forelse($products as $product)
                 <tr>
                     <td>{{ $product->id }}</td>
                     <td>{{ $product->name }}</td>
@@ -29,7 +39,11 @@
                         </form>
                     </td>
                 </tr>
-            @endforeach
+            @empty
+                <tr>
+                    <td colspan="5">Tidak ada produk ditemukan.</td>
+                </tr>
+            @endforelse
         </tbody>
     </table>
 </div>

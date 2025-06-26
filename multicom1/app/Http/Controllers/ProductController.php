@@ -9,11 +9,22 @@ use App\Models\Type;
 
 class ProductController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $products = Product::all();
+        $query = \App\Models\Product::with(['brand', 'type']);
+
+        // Jika ada pencarian
+        if ($request->has('q') && $request->q !== '') {
+            $keyword = $request->q;
+            $query->where('name', 'LIKE', "%{$keyword}%");
+        }
+
+        $products = $query->get(); // atau paginate() kalau kamu pakai pagination
+
         return view('admin.products.index', compact('products'));
     }
+
+
 
     public function create()
     {

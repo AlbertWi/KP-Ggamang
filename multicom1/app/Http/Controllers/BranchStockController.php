@@ -14,7 +14,7 @@ class BranchStockController extends Controller
         $branches = Branch::with(['inventoryItems' => function ($q) {
             $q->where('status', 'in_stock')->with('product');
         }])->get();
-
-        return view('kepala_toko.stok_cabang.index', compact('branches', 'query'));
+        $selectedBranchId = $request->branch_id;
+        return view('partials.stok_cabang.index', compact('branches', 'query'));
     }
 }

@@ -10,6 +10,9 @@
             <form method="GET" action="{{ route('kepala.stok-cabang') }}">
                 <div class="input-group input-group-sm" style="width: 250px;">
                     <input type="text" name="q" class="form-control float-right" placeholder="Cari produk..." value="{{ request('q') }}">
+                    @if(request('branch_id'))
+                        <input type="hidden" name="branch_id" value="{{ request('branch_id') }}">
+                    @endif
                     <div class="input-group-append">
                         <button type="submit" class="btn btn-default">
                             <i class="fas fa-search"></i>
@@ -21,20 +24,50 @@
     </div>
 
     <div class="card-body">
-        @foreach($branches as $branch)
-        <h5 class="mt-4"><i class="fas fa-store"></i> {{ $branch->name }}</h5>
+        <!-- TAB MENU UNTUK CABANG -->
+        <ul class="nav nav-tabs mb-3">
+            <li class="nav-item">
+                <a class="nav-link {{ request('branch_id') == null ? 'active' : '' }}" href="{{ route('kepala.stok-cabang') }}">
+                    Semua Cabang
+                </a>
+            </li>
+            @foreach($branches as $b)
+                <li class="nav-item">
+                    <a class="nav-link {{ request('branch_id') == $b->id ? 'active' : '' }}" 
+                       href="{{ route('kepala.stok-cabang', array_merge(request()->except('page'), ['branch_id' => $b->id])) }}">
+                        {{ $b->name }}
+                        @if(auth()->user()->branch_id == $b->id)
+                            <span class="badge bg-primary">Cabang Saya</span>
+                        @endif
+                    </a>
+                </li>
+            @endforeach
+        </ul>
 
         @php
-            $grouped = $branch->inventoryItems->groupBy('product_id');
-
-            if ($query) {
-                $grouped = $grouped->filter(function ($items, $productId) use ($query) {
-                    return stripos($items->first()->product->name, $query) !== false;
-                });
-            }
+            $filteredBranches = request('branch_id') 
+                ? $branches->filter(fn($b) => $b->id == request('branch_id')) 
+                : $branches;
         @endphp
 
-        @if($grouped->count())
+        @forelse($filteredBranches as $branch)
+            @php
+                $isOwnBranch = auth()->user()->branch_id == $branch->id;
+                $grouped = $branch->inventoryItems->groupBy('product_id');
+                if ($query = request('q')) {
+                    $grouped = $grouped->filter(function ($items) use ($query) {
+                        return stripos($items->first()->product->name, $query) !== false;
+                    });
+                }
+            @endphp
+
+            <h5 class="mt-4">
+                <i class="fas fa-store"></i> {{ $branch->name }}
+                @if($isOwnBranch)
+                    <span class="badge bg-info ml-2">Cabang Saya</span>
+                @endif
+            </h5>
+
             <div class="table-responsive">
                 <table class="table table-bordered table-sm">
                     <thead>
@@ -45,9 +78,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($grouped as $productId => $items)
+                        @forelse($grouped as $productId => $items)
                             @php $product = $items->first()->product; @endphp
-                            <tr>
+                            <tr class="{{ $isOwnBranch ? 'table-info' : '' }}">
                                 <td>{{ $product->name ?? '-' }}</td>
                                 <td><span class="badge bg-success">{{ $items->count() }}</span></td>
                                 <td>
@@ -87,14 +120,17 @@
                                     </div>
                                 </div>
                             </div>
-                        @endforeach
+                        @empty
+                            <tr>
+                                <td colspan="3" class="text-muted text-center">Tidak ada stok produk tersedia.</td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
-        @else
-            <p class="text-muted">Tidak ada stok produk tersedia.</p>
-        @endif
-        @endforeach
+        @empty
+            <p class="text-muted">Cabang tidak ditemukan.</p>
+        @endforelse
     </div>
 </div>
 @endsection

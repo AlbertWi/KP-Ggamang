@@ -27,8 +27,7 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <strong>IMEI:</strong> <span id="preview-imei"></span><br>
-                                <strong>Produk:</strong> <span id="preview-product"></span><br>
-                                <strong>Deskripsi:</strong> <span id="preview-description"></span>
+                                <strong>Produk:</strong> <span id="preview-product"></span>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
@@ -80,7 +79,6 @@
     let totalPrice = 0;
     let currentInventory = null;
 
-    // Format rupiah
     function formatRupiah(value) {
         return new Intl.NumberFormat('id-ID', {
             style: 'currency',
@@ -89,98 +87,69 @@
         }).format(value);
     }
 
-    // Parse rupiah string ke number
-    function parseRupiah(rp) {
-        return parseInt(rp.toString().replace(/[^\d]/g, '')) || 0;
-    }
-
-    // Event listener untuk input IMEI
     document.getElementById('imei-input').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
             e.preventDefault();
             let imei = this.value.trim();
-
-            if (!imei) {
-                alert('IMEI tidak boleh kosong');
-                return;
-            }
-
-            // Cek apakah IMEI sudah pernah dimasukkan
+            if (!imei) return alert('IMEI tidak boleh kosong');
             if (selectedItems.find(item => item.imei === imei)) {
                 alert('IMEI ini sudah ditambahkan!');
                 this.value = '';
                 return;
             }
-
-            // Cari produk berdasarkan IMEI
             searchProductByImei(imei);
         }
     });
 
-    // Fungsi untuk mencari produk berdasarkan IMEI
     function searchProductByImei(imei) {
-        const url = `/search-by-imei?imei=` + encodeURIComponent(imei);
-
-        fetch(url)
+        fetch(`/search-by-imei?imei=${encodeURIComponent(imei)}`)
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
                     currentInventory = data.inventory;
                     showProductPreview(data.inventory);
                 } else {
-                    alert(data.message || 'IMEI tidak ditemukan atau tidak tersedia.');
+                    alert(data.message || 'IMEI tidak ditemukan');
                     document.getElementById('imei-input').value = '';
                 }
             })
             .catch(error => {
-                console.error('Fetch Error:', error);
-                alert('Terjadi kesalahan saat mencari produk: ' + error.message);
+                console.error('Error:', error);
+                alert('Terjadi kesalahan: ' + error.message);
                 document.getElementById('imei-input').value = '';
             });
     }
 
-    // Tampilkan preview produk
     function showProductPreview(inventory) {
-        // Reset previous values
-        document.getElementById('sale-price').value = '';
-        
+        const brandName = inventory.product.brand?.name || '';
+        const productName = inventory.product.name || '';
+        const defaultPrice = inventory.product.price ?? 0;
+
         document.getElementById('preview-imei').textContent = inventory.imei;
-        document.getElementById('preview-product').textContent = `${inventory.product.brand || ''} ${inventory.product.model || inventory.product.name}`;
-        document.getElementById('preview-description').textContent = inventory.product.description || 'Tidak ada deskripsi';
-        document.getElementById('default-price').textContent = formatRupiah(inventory.product.price);
-        document.getElementById('sale-price').value = inventory.product.price;
-        
+        document.getElementById('preview-product').textContent = `${brandName} ${productName}`;
+        document.getElementById('default-price').textContent = formatRupiah(defaultPrice);
+        document.getElementById('sale-price').value = defaultPrice;
+
         document.getElementById('product-preview').style.display = 'block';
         document.getElementById('imei-input').disabled = true;
-        
-        // Focus ke input harga
         document.getElementById('sale-price').focus();
         document.getElementById('sale-price').select();
     }
 
-    // Event listener untuk tombol tambah ke keranjang
     document.getElementById('add-item-btn').addEventListener('click', function() {
         if (!currentInventory) return;
 
         const salePrice = parseInt(document.getElementById('sale-price').value);
-        if (!salePrice || salePrice < 0) {
-            alert('Harga jual harus diisi dan tidak boleh negatif');
-            return;
-        }
+        if (!salePrice || salePrice <= 0) return alert('Harga jual tidak valid');
 
-        // Tambah ke keranjang
         addItemToCart(currentInventory, salePrice);
-        
-        // Reset form
         resetForm();
     });
 
-    // Event listener untuk tombol batal
     document.getElementById('cancel-btn').addEventListener('click', function() {
         resetForm();
     });
 
-    // Event listener untuk Enter di input harga
     document.getElementById('sale-price').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
             e.preventDefault();
@@ -188,7 +157,6 @@
         }
     });
 
-    // Fungsi untuk menambah item ke keranjang
     function addItemToCart(inventory, salePrice) {
         const item = {
             imei: inventory.imei,
@@ -198,39 +166,28 @@
 
         selectedItems.push(item);
 
-        // Tambah ke tabel
         let tbody = document.querySelector('#produk-table tbody');
         let row = document.createElement('tr');
         row.setAttribute('data-imei', inventory.imei);
         row.innerHTML = `
             <td>${inventory.imei}</td>
-            <td>${inventory.product.brand || ''} ${inventory.product.model || inventory.product.name}</td>
+            <td>${inventory.product.brand?.name || ''} ${inventory.product.name || ''}</td>
             <td>${formatRupiah(salePrice)}</td>
-            <td>
-                <button type="button" class="btn btn-sm btn-danger" onclick="removeItem('${inventory.imei}')">Hapus</button>
-            </td>
+            <td><button type="button" class="btn btn-sm btn-danger" onclick="removeItem('${inventory.imei}')">Hapus</button></td>
         `;
         tbody.appendChild(row);
 
-        // Update total dan form
         updateTotal();
         updateHiddenInputs();
     }
 
-    // Fungsi untuk menghapus item
     function removeItem(imei) {
-        // Hapus dari array
         selectedItems = selectedItems.filter(item => item.imei !== imei);
-        
-        // Hapus baris dari tabel
         document.querySelector(`tr[data-imei="${imei}"]`).remove();
-        
-        // Update total dan form
         updateTotal();
         updateHiddenInputs();
     }
 
-    // Reset form
     function resetForm() {
         document.getElementById('product-preview').style.display = 'none';
         document.getElementById('imei-input').disabled = false;
@@ -240,29 +197,23 @@
         currentInventory = null;
     }
 
-    // Update total harga
     function updateTotal() {
         totalPrice = selectedItems.reduce((sum, item) => sum + item.price, 0);
         document.getElementById('total-price').textContent = formatRupiah(totalPrice);
         document.getElementById('submit-btn').disabled = selectedItems.length === 0;
     }
 
-    // Update hidden inputs untuk form submission
     function updateHiddenInputs() {
-        // Hapus input hidden yang lama
         document.querySelectorAll('input[name^="items"]').forEach(input => input.remove());
-        
-        // Tambah input hidden untuk setiap item
+
         let form = document.getElementById('sales-form');
         selectedItems.forEach((item, index) => {
-            // Input untuk IMEI
             let imeiInput = document.createElement('input');
             imeiInput.type = 'hidden';
             imeiInput.name = `items[${index}][imei]`;
             imeiInput.value = item.imei;
             form.appendChild(imeiInput);
 
-            // Input untuk harga
             let priceInput = document.createElement('input');
             priceInput.type = 'hidden';
             priceInput.name = `items[${index}][price]`;
@@ -271,23 +222,21 @@
         });
     }
 
-    // Validasi form sebelum submit
     document.getElementById('sales-form').addEventListener('submit', function(e) {
         if (selectedItems.length === 0) {
             e.preventDefault();
-            alert('Silakan tambahkan minimal satu item untuk dijual');
+            alert('Tambahkan minimal satu item');
             return false;
         }
-        
-        // Pastikan semua harga valid
+
         for (let item of selectedItems) {
             if (!item.price || item.price <= 0) {
                 e.preventDefault();
-                alert('Semua item harus memiliki harga yang valid');
+                alert('Semua item harus memiliki harga valid');
                 return false;
             }
         }
-        
+
         return true;
     });
 </script>
