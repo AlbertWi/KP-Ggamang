@@ -40,7 +40,8 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::middleware(['auth', 'role:owner,kepala_toko,admin'])->group(function () {
-        Route::get('/stok-cabang', [\App\Http\Controllers\BranchStockController::class, 'index'])->name('kepala.stok-cabang');
+        Route::get('/stok-cabang', [\App\Http\Controllers\BranchStockController::class, 'index'])->name('stok-cabang');
+        Route::get('/stok/export', [\App\Http\Controllers\BranchStockController::class, 'exportStok'])->name('export-stok');
     });
     // === OWNER ===
     Route::middleware('role:owner')->group(function () {

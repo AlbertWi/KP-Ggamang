@@ -12,24 +12,20 @@ use App\Models\InventoryItem;
 use App\Models\Inventory;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class PurchaseController extends Controller
 {
     public function index()
 {
     $user = auth()->user();
-
-    // Jika user adalah kepala_toko, filter hanya cabang dia
     if ($user->role === 'kepala_toko') {
         $purchases = Purchase::where('branch_id', $user->branch_id)->latest()->get();
     } else {
-        // admin bisa lihat semua
         $purchases = Purchase::latest()->get();
     }
-
     return view('kepala_toko.purchases.index', compact('purchases'));
 }
-
     public function create()
     {
         $suppliers = Supplier::all();
@@ -41,13 +37,21 @@ class PurchaseController extends Controller
     {
         $request->validate([
             'supplier_id' => 'required|exists:suppliers,id',
-            'purchase_date' => 'required|date',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.qty' => 'required|numeric|min:1',
             'items.*.price' => 'required|numeric|min:0',
-        ]);
-
+        ],[
+            'supplier_id.required' => 'Supplier harus dipilih.',
+            'items.*.product_id.required' => 'Product Harus Diisi.',
+            'items.*.qty.required' => 'Qty Harus Diisi',
+            'items.*.qty.numeric' => 'Qty Harus Diisi dengan angka',
+            'items.*.qty.min' => 'Qty Harus Diisi dengan Minimal 1',
+            'items.*.price.required' => 'Harga Harus Diisi',
+            'items.*.price.numeric' => 'Harga Harus Diisi dengan angka',
+            'items.*.price.min' => 'Harga Harus Diisi dengan Minimal Rp 1',
+        ]); 
+        $purchaseDate = Carbon::now();
         $user = Auth::user();
         $branchId = $user->branch_id ?? Branch::first()?->id;
 
@@ -57,7 +61,7 @@ class PurchaseController extends Controller
                 'user_id' => $user->id,
                 'branch_id' => $branchId,
                 'supplier_id' => $request->supplier_id,
-                'purchase_date' => $request->purchase_date,
+                'purchase_date' => $purchaseDate,
             ]);
 
             foreach ($request->items as $item) {
@@ -70,7 +74,6 @@ class PurchaseController extends Controller
 
                 $purchaseItem->refresh();
 
-                // Buat inventory master
                 $inventory = Inventory::firstOrCreate([
                     'product_id' => $item['product_id'],
                     'branch_id' => $branchId,
@@ -92,11 +95,11 @@ class PurchaseController extends Controller
             }
 
             DB::commit();
-            return redirect()->route('purchases.index')->with('success', 'Pembelian berhasil disimpan.');
+            return redirect()->route('purchases.index')->with('success', 'Pembelian berhasil ditambahkan.');
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Purchase store error: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Gagal menyimpan pembelian: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal menambahkan pembelian: ' . $e->getMessage());
         }
     }
 
@@ -114,43 +117,40 @@ class PurchaseController extends Controller
     public function saveImei(Request $request, Purchase $purchase)
     {
         $imeis = $request->input('imeis', []);
+        $inventories = $purchase->items->flatMap(fn ($item) => $item->inventoryItems);
+        $errorMessages = [];
 
-        $allInventories = $purchase->items->flatMap(function ($item) {
-            return $item->inventoryItems;
-        });
+        foreach ($inventories as $inventory) {
+            $inputImei = trim($imeis[$inventory->id] ?? '');
 
-        foreach ($allInventories as $inventory) {
-            $inputImei = $imeis[$inventory->id] ?? null;
             if (!$inputImei) continue;
 
             $product = $inventory->product;
-            $type_id = $product->type_id;
+            $typeId = $product->type_id;
 
-            // Validasi IMEI tidak boleh ganda di produk dengan tipe sama
-            $duplicate = InventoryItem::where('imei', $inputImei)
-                ->whereHas('product', function ($query) use ($type_id) {
-                    $query->where('type_id', $type_id);
-                })
+            $isDuplicate = InventoryItem::where('imei', $inputImei)
                 ->where('id', '!=', $inventory->id)
                 ->exists();
 
-            if ($duplicate) {
-                return back()->withErrors([
-                    'IMEI ' . $inputImei . ' sudah digunakan pada produk dengan tipe yang sama.'
-                ])->withInput();
+            if ($isDuplicate) {
+                $errorMessages[] = "IMEI $inputImei sudah digunakan.";
+                continue;
             }
 
-            // Tambah atau ambil inventory master
-            $inv = Inventory::firstOrCreate([
-                'product_id' => $product->id,
-                'branch_id' => $inventory->branch_id,
-            ]);
+            try {
+                $inventory->imei = $inputImei;
+                $inventory->save();
+            } catch (\Exception $e) {
+                \Log::error('Gagal simpan IMEI: ' . $e->getMessage());
+                $errorMessages[] = "Gagal menyimpan IMEI <strong>{$inputImei}</strong>: {$e->getMessage()}";
+            }
+        }
 
-            $inventory->imei = $inputImei;
-            $inventory->inventory_id = $inv->id;
-            $inventory->save();
+        if (count($errorMessages) > 0) {
+            return redirect()->back()->withErrors($errorMessages)->withInput();
         }
 
         return redirect()->route('purchases.index')->with('success', 'IMEI berhasil disimpan.');
     }
+
 }

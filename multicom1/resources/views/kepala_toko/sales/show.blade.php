@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Detail Penjualan')
+@section('title', 'Detail Barang Keluar')
 
 @section('content')
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Detail Penjualan #{{ $sale->id }}</h1>
-        <a href="{{ route('sales.index') }}" class="btn btn-secondary">← Kembali ke Daftar Penjualan</a>
+        <h1>Detail Barang Keluar #{{ $sale->id }}</h1>
+        <a href="{{ route('sales.index') }}" class="btn btn-secondary">← Kembali ke Daftar Barang Keluar</a>
     </div>
 
     <div class="mb-2">
@@ -44,7 +44,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="4" class="text-center">Tidak ada item dalam penjualan ini.</td>
+                    <td colspan="4" class="text-center">Tidak ada item dalam Barang Keluar ini.</td>
                 </tr>
             @endforelse
         </tbody>

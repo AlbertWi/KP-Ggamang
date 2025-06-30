@@ -29,9 +29,20 @@ class UserController extends Controller
             'password'  => 'required|string|min:6|confirmed',
             'role'      => 'required|in:admin,kepala_toko',
             'branch_id' => 'required|exists:branches,id',
+        ],[
+            'name.required' => 'Nama harus diisi.',
+            'email.required' => 'Email harus diisi.',
+            'email.email' => 'Format email tidak valid. Contoh: user@example.com',
+            'email.unique' => 'Email sudah digunakan oleh user lain.',
+            'password.required' => 'Password harus diisi.',
+            'password.min' => 'Password minimal 6 karakter.',
+            'password.confirmed' => 'Konfirmasi password tidak cocok.',
+            'role.required' => 'Role harus dipilih.',
+            'role.in' => 'Role yang dipilih tidak valid.',
+            'branch_id.required' => 'Cabang toko harus dipilih.',
+            'branch_id.exists' => 'Cabang toko yang dipilih tidak valid.',
         ]);
 
-        // Cek apakah cabang sudah memiliki user
         $existingUser = User::where('branch_id', $validated['branch_id'])->first();
         if ($existingUser) {
             return back()->withInput()->withErrors(['branch_id' => 'Cabang ini sudah memiliki user.']);
@@ -61,10 +72,18 @@ class UserController extends Controller
         $user = User::findOrFail($id);
 
         $validated = $request->validate([
-            'name'      => 'sometimes|string|max:255',
-            'email'     => 'sometimes|email|unique:users,email,' . $user->id,
+            'name'      => 'required|sometimes|string|max:255',
+            'email'     => 'required|sometimes|email|unique:users,email,' . $user->id,
             'password'  => 'nullable|string|min:6|confirmed',
             'branch_id' => 'nullable|exists:branches,id',
+        ],[
+            'name.required' => 'Nama harus diisi.',
+            'email.required' => 'Email harus diisi.',
+            'email.email' => 'Format email tidak valid. Contoh: user@example.com',
+            'email.unique' => 'Email sudah digunakan oleh user lain.',
+            'password.min' => 'Password minimal 6 karakter.',
+            'password.confirmed' => 'Konfirmasi password tidak cocok.',
+            'branch_id.exists' => 'Cabang toko yang dipilih tidak valid.',
         ]);
 
         if (!empty($validated['branch_id'])) {

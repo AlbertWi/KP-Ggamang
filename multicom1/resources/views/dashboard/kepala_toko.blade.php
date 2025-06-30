@@ -9,7 +9,6 @@
     <i class="fas fa-bell"></i>
     <strong>Notifikasi:</strong> Anda memiliki {{ $pendingRequestsCount }} permintaan barang yang menunggu persetujuan.
     <a href="{{ route('stock-requests.index') }}" class="alert-link">Lihat semua permintaan</a>
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
 </div>
 @endif
 

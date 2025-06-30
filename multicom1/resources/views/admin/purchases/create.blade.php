@@ -21,7 +21,7 @@
 
         <div class="mb-3">
             <label for="supplier_id" class="form-label"><strong>Supplier</strong></label>
-            <select name="supplier_id" id="supplier_id" class="form-control" required>
+            <select name="supplier_id" id="supplier_id" class="form-control">
                 <option value="">-- Pilih Supplier --</option>
                 @foreach ($suppliers as $supplier)
                     <option value="{{ $supplier->id }}" {{ old('supplier_id') == $supplier->id ? 'selected' : '' }}>
@@ -31,9 +31,9 @@
             </select>
         </div>
 
-        <div class="mb-4">
-            <label for="purchase_date" class="form-label"><strong>Tanggal Pembelian</strong></label>
-            <input type="date" name="purchase_date" id="purchase_date" class="form-control" value="{{ old('purchase_date', date('Y-m-d')) }}" required>
+        <div class="form-group">
+            <label>Tanggal</label>
+            <input type="text" class="form-control" value="{{ \Carbon\Carbon::now()->format('d-m-Y') }}" readonly>
         </div>
 
         <hr>
@@ -42,7 +42,7 @@
         <div id="product-wrapper">
             <div class="row mb-2 product-row">
                 <div class="col-md-4">
-                    <select name="items[0][product_id]" class="form-control" required>
+                    <select name="items[0][product_id]" class="form-control">
                         <option value="">-- Pilih Produk --</option>
                         @foreach ($products as $product)
                             <option value="{{ $product->id }}">{{ $product->name }}</option>
@@ -50,10 +50,10 @@
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <input type="number" name="items[0][qty]" class="form-control" placeholder="Qty" required min="1">
+                    <input type="number" name="items[0][qty]" class="form-control" placeholder="Qty" min="1">
                 </div>
                 <div class="col-md-3">
-                    <input type="number" name="items[0][price]" class="form-control" placeholder="Harga Satuan" required min="0">
+                    <input type="number" name="items[0][price]" class="form-control" placeholder="Harga Satuan" min="0">
                 </div>
                 <div class="col-md-2">
                     <button type="button" class="btn btn-danger remove-row">Hapus</button>
@@ -82,7 +82,7 @@
 
         row.innerHTML = `
             <div class="col-md-4">
-                <select name="items[${index}][product_id]" class="form-control" required>
+                <select name="items[${index}][product_id]" class="form-control">
                     <option value="">-- Pilih Produk --</option>
                     @foreach ($products as $product)
                         <option value="{{ $product->id }}">{{ $product->name }}</option>
@@ -90,10 +90,10 @@
                 </select>
             </div>
             <div class="col-md-2">
-                <input type="number" name="items[${index}][qty]" class="form-control" placeholder="Qty" required min="1">
+                <input type="number" name="items[${index}][qty]" class="form-control" placeholder="Qty" min="1">
             </div>
             <div class="col-md-3">
-                <input type="number" name="items[${index}][price]" class="form-control" placeholder="Harga Satuan" required min="0">
+                <input type="number" name="items[${index}][price]" class="form-control" placeholder="Harga Satuan" min="0">
             </div>
             <div class="col-md-2">
                 <button type="button" class="btn btn-danger remove-row">Hapus</button>

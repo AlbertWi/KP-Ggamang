@@ -28,12 +28,6 @@
                             <td>{{ $user->branch->name ?? '-' }}</td>
                             <td>
                                 <a href="{{ route('users.edit', $user) }}" class="btn btn-warning btn-sm">Edit</a>
-                                <form action="{{ route('users.destroy', $user) }}" method="POST" style="display:inline;">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm"
-                                            onclick="return confirm('Yakin ingin hapus user ini?')">Hapus</button>
-                                </form>
                             </td>
                         </tr>
                     @endforeach

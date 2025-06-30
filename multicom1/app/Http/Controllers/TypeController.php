@@ -12,36 +12,24 @@ class TypeController extends Controller
         $types = Type::all();
         return view('admin.types.index', compact('types'));
     }
-
-    public function create()
-    {
-        return view('admin.types.create');
-    }
-
     public function store(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255|unique:types,name',
+        ],[
+            'name.required' => 'Nama Type harus diisi.',
         ]);
-
         Type::create(['name' => $request->name]);
-
         return redirect()->route('types.index')->with('success', 'Tipe berhasil ditambahkan.');
     }
-
-    public function edit(Type $type)
-    {
-        return view('admin.types.edit', compact('type'));
-    }
-
     public function update(Request $request, Type $type)
     {
         $request->validate([
             'name' => 'required|string|max:255|unique:types,name,' . $type->id,
+        ],[
+            'name.required' => 'Nama Type harus diisi.',
         ]);
-
         $type->update(['name' => $request->name]);
-
         return redirect()->route('types.index')->with('success', 'Tipe berhasil diperbarui.');
     }
 }

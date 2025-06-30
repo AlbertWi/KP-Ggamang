@@ -1,6 +1,14 @@
 <aside class="main-sidebar sidebar-dark-primary elevation-4">
     <a href="{{ route('dashboard') }}" class="brand-link">
-      <span class="brand-text font-weight-light">Multicom</span>
+    <span class="brand-text font-weight-light">
+      @if(Auth::check())
+        @if(Auth::user()->role === 'owner')
+          Multicom
+        @else
+          {{ Auth::user()->branch->name ?? 'Multicom' }}
+        @endif
+      @endif
+    </span>
     </a>
 
     <div class="sidebar">
@@ -62,7 +70,7 @@
               </a>
             </li>
             <li class="nav-item">
-              <a href="{{ route('kepala.stok-cabang') }}" class="nav-link">
+              <a href="{{ route('stok-cabang') }}" class="nav-link">
                 <i class="nav-icon fas fa-boxes"></i>
                 <p>Stok</p>
               </a>
@@ -72,7 +80,7 @@
             <li class="nav-item">
               <a href="{{ route('sales.index') }}" class="nav-link">
                 <i class="nav-icon fas fa-cash-register"></i>
-                <p>Penjualan</p>
+                <p>Barang Keluar</p>
               </a>
             </li>
             <li class="nav-item">
@@ -88,7 +96,7 @@
               </a>
             </li>
             <li class="nav-item">
-              <a href="{{ route('kepala.stok-cabang') }}" class="nav-link">
+              <a href="{{ route('stok-cabang') }}" class="nav-link">
                 <i class="nav-icon fas fa-warehouse"></i>
                 <p>Stok Cabang</p>
               </a>
@@ -102,7 +110,7 @@
 
           @elseif(Auth::check() && Auth::user()->role === 'owner')
             <li class="nav-item">
-              <a href="{{ route('kepala.stok-cabang') }}" class="nav-link">
+              <a href="{{ route('stok-cabang') }}" class="nav-link">
                 <i class="nav-icon fas fa-boxes"></i>
                 <p>Stok</p>
               </a>

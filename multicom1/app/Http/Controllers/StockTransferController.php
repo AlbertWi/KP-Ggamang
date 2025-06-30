@@ -52,6 +52,9 @@ class StockTransferController extends Controller
             'to_branch_id' => 'required|exists:branches,id',
             'imeis' => 'required|array|min:1',
             'imeis.*' => 'required|string|distinct'
+        ],[
+            'imeis.required' => 'IMEI harus diisi.',
+            'imeis.*.required' => 'IMEI harus diisi.',
         ]);
     
         $fromBranchId = auth()->user()->branch_id;
@@ -137,10 +140,6 @@ class StockTransferController extends Controller
             ])->withInput();
         }
     }
-
-
-
-    // Tampilkan detail transfer stok
     public function show($id)
     {
         $stockTransfer = \App\Models\StockTransfer::with(['fromBranch', 'toBranch', 'items.inventoryItem.product'])

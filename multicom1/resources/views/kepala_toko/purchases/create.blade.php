@@ -18,7 +18,7 @@
                     @endforeach
                 </select>
             </div>
-
+            
             <div id="products-wrapper">
                 <div class="product-item mb-3 border p-3 rounded">
                     <div class="form-group">

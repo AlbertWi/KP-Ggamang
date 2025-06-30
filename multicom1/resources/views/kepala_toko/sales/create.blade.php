@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="card">
-    <div class="card-header">Tambah Penjualan</div>
+    <div class="card-header">Tambah Barang Keluar</div>
     <div class="card-body">
         @if(session('error'))
             <div class="alert alert-danger">{{ session('error') }}</div>
@@ -64,7 +64,7 @@
 
             <div class="form-group mt-3">
                 <button type="submit" class="btn btn-primary" id="submit-btn" disabled>
-                    Simpan Penjualan
+                    Simpan Barang Keluar
                 </button>
                 <a href="{{ route('sales.index') }}" class="btn btn-secondary">Kembali</a>
             </div>

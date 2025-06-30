@@ -2,29 +2,15 @@
 @section('title', 'Permintaan Barang')
 @section('content')
 
-@if (session('success'))
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        {{ session('success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-@endif
-
-@if ($errors->any())
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        @foreach ($errors->all() as $error)
-            {{ $error }}<br>
-        @endforeach
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-@endif
-
 <div class="card">
     <div class="card-header">
         <h3 class="card-title">Daftar Permintaan Barang</h3>
         <div class="card-tools">
-            <a href="{{ route('stock-requests.create') }}" class="btn btn-sm btn-primary">
-                <i class="fas fa-plus"></i> Tambah Permintaan
+        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#createRequestModal">
+            <a> 
+                <i class="fas fa-plus"></i> Tambah Permintaan 
             </a>
+        </button>
         </div>
     </div>
     <div class="card-body table-responsive p-0">
@@ -67,45 +53,37 @@
                         @endif
                     </td>
                     <td>
+                        {{-- aksi tolak/terima --}}
                         @if(Auth::user()->branch_id == $req->to_branch_id && $req->status == 'pending')
                             <div class="btn-group" role="group">
                                 <form action="{{ route('stock-requests.approve', $req->id) }}" method="POST" style="display:inline">
-                                    @csrf
-                                    @method('PATCH')
+                                    @csrf @method('POST')
                                     <button class="btn btn-success btn-sm" title="Setujui" onclick="return confirm('Yakin ingin menyetujui permintaan ini?')">
                                         <i class="fas fa-check"></i>
                                     </button>
                                 </form>
-                                <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#rejectModal{{ $req->id }}" title="Tolak">
+                                <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#rejectModal{{ $req->id }}">
                                     <i class="fas fa-times"></i>
                                 </button>
                             </div>
 
+                            <!-- Modal Tolak -->
                             <div class="modal fade" id="rejectModal{{ $req->id }}" tabindex="-1">
                                 <div class="modal-dialog">
                                     <form method="POST" action="{{ route('stock-requests.reject', $req->id) }}">
-                                        @csrf
-                                        @method('PATCH')
+                                        @csrf @method('POST')
                                         <div class="modal-content">
                                             <div class="modal-header">
                                                 <h5 class="modal-title">Tolak Permintaan</h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                             </div>
                                             <div class="modal-body">
-                                                <div class="mb-3">
-                                                    <strong>Detail Permintaan:</strong><br>
-                                                    Dari: {{ $req->fromBranch->name }}<br>
-                                                    Produk: {{ $req->product->name }}<br>
-                                                    Jumlah: {{ $req->qty }}
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label for="reason{{ $req->id }}" class="form-label">Alasan Penolakan <span class="text-danger">*</span></label>
-                                                    <textarea name="reason" id="reason{{ $req->id }}" class="form-control" rows="3" required placeholder="Masukkan alasan penolakan..."></textarea>
-                                                </div>
+                                                <p><strong>{{ $req->product->name }}</strong> ({{ $req->qty }}) dari <strong>{{ $req->fromBranch->name }}</strong></p>
+                                                <textarea name="reason" class="form-control" placeholder="Alasan penolakan..." required></textarea>
                                             </div>
                                             <div class="modal-footer">
                                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                                                <button type="submit" class="btn btn-danger">Tolak Permintaan</button>
+                                                <button type="submit" class="btn btn-danger">Tolak</button>
                                             </div>
                                         </div>
                                     </form>
@@ -133,20 +111,97 @@
         <div class="text-center py-4">
             <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
             <p class="text-muted">Belum ada permintaan barang</p>
-            <a href="{{ route('stock-requests.create') }}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Buat Permintaan Pertama
-            </a>
         </div>
         @endif
     </div>
 </div>
 
+<!-- Modal Tambah Permintaan -->
+<!-- Modal Tambah Permintaan -->
+<div class="modal fade {{ $errors->any() ? 'show d-block' : '' }}" id="createRequestModal" tabindex="-1" aria-modal="true" role="dialog">
+    <div class="modal-dialog">
+        <form method="POST" action="{{ route('stock-requests.store') }}">
+            @csrf
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Buat Permintaan Barang</h5>
+                </div>
+                <div class="modal-body">
+                    {{-- Tampilkan notifikasi error jika ada --}}
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <div class="mb-2">
+                        <label>Cabang Tujuan</label>
+                        <select name="to_branch_id" class="form-control">
+                            <option value="">-- Pilih Cabang --</option>
+                            @foreach($branches as $branch)
+                                @if($branch->id != Auth::user()->branch_id)
+                                    <option value="{{ $branch->id }}" {{ old('to_branch_id') == $branch->id ? 'selected' : '' }}>
+                                        {{ $branch->name }}
+                                    </option>
+                                @endif
+                            @endforeach
+                        </select>
+                        @error('to_branch_id')
+                            <div class="text-danger small mt-1">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="mb-2">
+                        <label>Produk</label>
+                        <select name="product_id" class="form-control">
+                            <option value="">-- Pilih Produk --</option>
+                            @foreach($products as $product)
+                                <option value="{{ $product->id }}" {{ old('product_id') == $product->id ? 'selected' : '' }}>
+                                    {{ $product->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('product_id')
+                            <div class="text-danger small mt-1">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="mb-2">
+                        <label>Jumlah</label>
+                        <input type="number" name="qty" class="form-control" min="1" placeholder="Masukkan jumlah" value="{{ old('qty') }}">
+                        @error('qty')
+                            <div class="text-danger small mt-1">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Kirim Permintaan</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.forEach(function (el) {
+        new bootstrap.Tooltip(el);
     });
 });
-</script>
+@if($errors->any())
+    <script>
+        var myModal = new bootstrap.Modal(document.getElementById('createRequestModal'));
+        window.addEventListener('DOMContentLoaded', () => {
+            myModal.show();
+        });
+    </script>
+@endif
+
 @endsection

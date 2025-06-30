@@ -6,40 +6,42 @@ use App\Models\StockRequest;
 use App\Models\Product;
 use App\Models\Branch;
 use Illuminate\Http\Request;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 
 class StockRequestController extends Controller
 {
-    public function index() {
+    public function index()
+    {
         $branchId = Auth::user()->branch_id;
-        
-        // Ambil request yang melibatkan cabang user (sebagai pengirim atau penerima)
-        $requests = StockRequest::where('from_branch_id', $branchId)
+
+        $requests = StockRequest::with(['fromBranch', 'toBranch', 'product'])
+                    ->where('from_branch_id', $branchId)
                     ->orWhere('to_branch_id', $branchId)
-                    ->with(['fromBranch', 'toBranch', 'product'])
                     ->orderBy('created_at', 'desc')
                     ->get();
 
-        return view('kepala_toko.stock_requests.index', compact('requests'));
-    }
-
-    public function create() {
         $products = Product::all();
-        // Hanya tampilkan cabang lain (bukan cabang user sendiri)
-        $branches = Branch::where('id', '!=', Auth::user()->branch_id)->get();
-        return view('kepala_toko.stock_requests.create', compact('products', 'branches'));
+        $branches = Branch::where('id', '!=', $branchId)->get();
+
+        return view('kepala_toko.stock_requests.index', compact('requests', 'products', 'branches'));
     }
 
-    public function store(Request $request) {
+    public function store(Request $request)
+    {
         $request->validate([
             'to_branch_id' => 'required|exists:branches,id',
             'product_id' => 'required|exists:products,id',
             'qty' => 'required|integer|min:1',
+        ],[
+            'to_branch_id.required' => 'Cabang harus dipilih.',
+            'product_id.required' => 'Produk harus dipilih.',
+            'qty.required' => 'Jumlah harus diisi.',
         ]);
 
-        // Pastikan user tidak mengirim request ke cabang sendiri
         if ($request->to_branch_id == Auth::user()->branch_id) {
-            return redirect()->back()->withErrors(['to_branch_id' => 'Tidak bisa mengirim request ke cabang sendiri']);
+            return redirect()->back()->withErrors([
+                'to_branch_id' => 'Tidak bisa mengirim permintaan ke cabang sendiri'
+            ]);
         }
 
         StockRequest::create([
@@ -50,47 +52,52 @@ class StockRequestController extends Controller
             'status' => 'pending',
         ]);
 
-        return redirect()->route('stock-requests.index')->with('success', 'Permintaan barang berhasil dibuat.');
+        return redirect()->route('stock-requests.index')->with('success', 'Permintaan barang berhasil dikirim.');
     }
 
-    public function approve($id) {
+    public function approve($id)
+    {
         $stockRequest = StockRequest::findOrFail($id);
-        
-        // Pastikan hanya cabang tujuan yang bisa approve
+
         if ($stockRequest->to_branch_id != Auth::user()->branch_id) {
-            return redirect()->back()->withErrors(['error' => 'Anda tidak memiliki akses untuk menyetujui request ini']);
+            return redirect()->back()->withErrors(['error' => 'Akses ditolak']);
         }
 
         $stockRequest->update(['status' => 'accepted']);
+
         return redirect()->back()->with('success', 'Permintaan disetujui.');
     }
 
-    public function reject(Request $request, $id) {
-        $request->validate(['reason' => 'required']);
-        
+    public function reject(Request $request, $id)
+    {
+        $request->validate([
+            'reason' => 'required|string'
+        ]);
+
         $stockRequest = StockRequest::findOrFail($id);
-        
-        // Pastikan hanya cabang tujuan yang bisa reject
+
         if ($stockRequest->to_branch_id != Auth::user()->branch_id) {
-            return redirect()->back()->withErrors(['error' => 'Anda tidak memiliki akses untuk menolak request ini']);
+            return redirect()->back()->withErrors(['error' => 'Akses ditolak']);
         }
 
         $stockRequest->update([
             'status' => 'rejected',
             'reason' => $request->reason
         ]);
+
         return redirect()->back()->with('success', 'Permintaan ditolak.');
     }
 
-    // Method untuk dashboard - hitung pending requests
-    public function getPendingRequestsCount() {
+    // Optional untuk dashboard atau notifikasi
+    public function getPendingRequestsCount()
+    {
         return StockRequest::where('to_branch_id', Auth::user()->branch_id)
                             ->where('status', 'pending')
                             ->count();
     }
 
-    // Method untuk dashboard - ambil pending requests
-    public function getPendingRequests() {
+    public function getPendingRequests()
+    {
         return StockRequest::where('to_branch_id', Auth::user()->branch_id)
                             ->where('status', 'pending')
                             ->with(['fromBranch', 'product'])

@@ -100,7 +100,7 @@ class SaleController extends Controller
             }
     
             DB::commit();
-            return redirect()->route('sales.index')->with('success', 'Penjualan berhasil disimpan.');
+            return redirect()->route('sales.index')->with('success', 'Barang Keluar berhasil disimpan.');
     
         } catch (\Exception $e) {
             DB::rollBack();
@@ -108,7 +108,7 @@ class SaleController extends Controller
     
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Gagal menyimpan penjualan: ' . $e->getMessage());
+                ->with('error', 'Gagal menyimpan Barang Keluar: ' . $e->getMessage());
         }
     }
     
@@ -148,8 +148,6 @@ class SaleController extends Controller
                 ]
             ]);
         }
-
-        // Cek IMEI ada tapi di cabang lain atau status tidak sesuai
         $inventoryAny = \App\Models\InventoryItem::with('product')->where('imei', $imei)->first();
 
         if ($inventoryAny) {

@@ -15,10 +15,13 @@ class AuthController extends Controller
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required']
+        ],[
+            'email.required' => 'Email harus diisi.',
+            'email.email' => 'Format email tidak valid. Contoh: user@example.com',
         ]);
 
         if (Auth::attempt($credentials)) {
-            $request->session()->regenerate(); // penting untuk keamanan sesi
+            $request->session()->regenerate();
             return redirect()->route('dashboard');
         }
 
@@ -31,13 +34,9 @@ class AuthController extends Controller
     public function logout(Request $request)
 {
     $accessToken = $request->user()->currentAccessToken();
-
-    // Check if the token can be deleted
     if (method_exists($accessToken, 'delete')) {
         $accessToken->delete();
     }
-
-    // Force logout
     Auth::guard('web')->logout();
 
     return redirect()->route('login');
@@ -49,8 +48,6 @@ class AuthController extends Controller
 public function dashboard()
 {
     $user = Auth::user();
-
-    // Redirect to role-specific dashboard
     switch ($user->role) {
         case 'admin':
             return view('dashboard.admin', [
@@ -64,8 +61,6 @@ public function dashboard()
 
         case 'kepala_toko':
             $branchId = $user->branch_id;
-            
-            // Data untuk stock requests
             $pendingRequestsCount = \App\Models\StockRequest::where('to_branch_id', $branchId)
                                                             ->where('status', 'pending')
                                                             ->count();
@@ -85,8 +80,6 @@ public function dashboard()
                 'totalPurchases' => \App\Models\Purchase::where('branch_id', $branchId)->count(),
                 'totalTransfersIn' => \App\Models\StockTransfer::where('to_branch_id', $branchId)->count(),
                 'totalTransfersOut' => \App\Models\StockTransfer::where('from_branch_id', $branchId)->count(),
-                
-                // Data stock requests
                 'pendingRequestsCount' => $pendingRequestsCount,
                 'pendingRequests' => $pendingRequests,
                 'totalStockRequestsIn' => \App\Models\StockRequest::where('to_branch_id', $branchId)->count(),
@@ -94,7 +87,6 @@ public function dashboard()
             ]);
 
             case 'owner':
-                // Ambil stok per cabang yang menipis (kurang dari 2)
                 $lowStocks = \App\Models\Branch::with(['inventoryItems' => function ($q) {
                     $q->where('status', 'in_stock')->with('product');
                 }])->get()->map(function ($branch) {

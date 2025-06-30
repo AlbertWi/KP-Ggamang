@@ -12,27 +12,25 @@ class BrandController extends Controller
         $brands = Brand::all();
         return view('admin.brands.index', compact('brands'));
     }
-    public function create()
-    {
-        return view('admin.brands.create');
-    }
 
     public function store(Request $request)
     {
         $request->validate([
             'name' => 'required|unique:brands,name',
+        ],[
+            'name.required' => 'Nama Brand harus diisi.',
         ]);
-
         Brand::create([
             'name' => $request->name,
         ]);
-
         return redirect()->route('brands.index')->with('success', 'Merek berhasil ditambahkan.');
     }
     public function update(Request $request, $id)
     {
         $request->validate([
             'name' => 'required|string|max:255'
+        ],[
+            'name.required' => 'nama Brand harus diisi.',
         ]);
 
         $brand = \App\Models\Brand::findOrFail($id);
