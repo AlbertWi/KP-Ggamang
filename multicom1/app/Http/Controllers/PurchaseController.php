@@ -35,6 +35,15 @@ class PurchaseController extends Controller
 
     public function store(Request $request)
     {
+        $normalizedItems = [];
+        foreach ($request->items as $i => $item) {
+            $normalizedItems[$i] = $item;
+            $normalizedItems[$i]['price'] = str_replace(',', '', $item['price'] ?? 0);
+            $normalizedItems[$i]['qty'] = str_replace(',', '', $item['qty'] ?? 0);
+        }
+        $request->merge([
+            'items' => $normalizedItems
+        ]);
         $request->validate([
             'supplier_id' => 'required|exists:suppliers,id',
             'items' => 'required|array|min:1',
@@ -50,7 +59,7 @@ class PurchaseController extends Controller
             'items.*.price.required' => 'Harga Harus Diisi',
             'items.*.price.numeric' => 'Harga Harus Diisi dengan angka',
             'items.*.price.min' => 'Harga Harus Diisi dengan Minimal Rp 1',
-        ]); 
+        ]);
         $purchaseDate = Carbon::now();
         $user = Auth::user();
         $branchId = $user->branch_id ?? Branch::first()?->id;
@@ -80,7 +89,7 @@ class PurchaseController extends Controller
                 ]);
                 $inventory->qty = ($inventory->exists ? $inventory->qty : 0) + $item['qty'];
                 $inventory->save();
-                
+
                 // Buat inventory items
                 for ($i = 0; $i < $item['qty']; $i++) {
                     InventoryItem::create([

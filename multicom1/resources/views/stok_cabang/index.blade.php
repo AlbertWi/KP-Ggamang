@@ -4,20 +4,21 @@
 
 @section('content')
 <div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
+    <div class="card-header">
         <h3 class="card-title">Stok Produk Cabang</h3>
-        <div class="card-tools d-flex">
-            <a href="{{ route('export-stok') }}" class="btn btn-success btn-sm me-2">
-                <i class="fas fa-file-excel"></i> Export Excel
-            </a>
-            <form method="GET" action="{{ route('stok-cabang') }}" class="d-flex">
-                <input type="text" name="q" class="form-control form-control-sm me-1" placeholder="Cari produk..." value="{{ request('q') }}">
-                @if(request('branch_id'))
-                    <input type="hidden" name="branch_id" value="{{ request('branch_id') }}">
-                @endif
-                <button type="submit" class="btn btn-sm btn-default">
-                    <i class="fas fa-search"></i>
-                </button>
+        <div class="card-tools">
+            <form method="GET" action="{{ route('stok-cabang') }}">
+                <div class="input-group input-group-sm" style="width: 250px;">
+                    <input type="text" name="q" class="form-control float-right" placeholder="Cari produk..." value="{{ request('q') }}">
+                    @if(request('branch_id'))
+                        <input type="hidden" name="branch_id" value="{{ request('branch_id') }}">
+                    @endif
+                    <div class="input-group-append">
+                        <button type="submit" class="btn btn-default">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
             </form>
         </div>
     </div>
@@ -32,8 +33,8 @@
             </li>
             @foreach($branches as $b)
                 <li class="nav-item">
-                    <a class="nav-link {{ request('branch_id') == $b->id ? 'active' : '' }}" 
-                    href="{{ route('stok-cabang', array_merge(request()->except('page'), ['branch_id' => $b->id])) }}">
+                    <a class="nav-link {{ request('branch_id') == $b->id ? 'active' : '' }}"
+                       href="{{ route('stok-cabang', array_merge(request()->except('page'), ['branch_id' => $b->id])) }}">
                         {{ $b->name }}
                         @if(auth()->user()->branch_id == $b->id)
                             <span class="badge bg-primary">Cabang Saya</span>
@@ -44,8 +45,8 @@
         </ul>
 
         @php
-            $filteredBranches = request('branch_id') 
-                ? $branches->filter(fn($b) => $b->id == request('branch_id')) 
+            $filteredBranches = request('branch_id')
+                ? $branches->filter(fn($b) => $b->id == request('branch_id'))
                 : $branches;
         @endphp
 
@@ -83,7 +84,7 @@
                                 <td>{{ $product->name ?? '-' }}</td>
                                 <td><span class="badge bg-success">{{ $items->count() }}</span></td>
                                 <td>
-                                    <button class="btn btn-sm btn-info" 
+                                    <button class="btn btn-sm btn-info"
                                             data-toggle="modal"
                                             data-target="#modal-imei-{{ $branch->id }}-{{ $productId }}">
                                         Detail

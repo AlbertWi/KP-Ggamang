@@ -7,10 +7,10 @@
         @if(session('error'))
             <div class="alert alert-danger">{{ session('error') }}</div>
         @endif
-        
+
         <form id="sales-form" method="POST" action="{{ route('sales.store') }}">
             @csrf
-            
+
             <div class="form-group">
                 <label for="imei">Scan / Masukkan IMEI</label>
                 <input type="text" id="imei-input" class="form-control" placeholder="Masukkan IMEI lalu tekan Enter" autocomplete="off">
@@ -32,7 +32,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="sale-price">Harga Jual (Rp)</label>
-                                    <input type="number" id="sale-price" class="form-control" min="0" step="1000">
+                                    <input type="text" id="sale-price" class="form-control" placeholder="0">
                                     <small class="text-muted">Harga default: <span id="default-price"></span></small>
                                 </div>
                                 <button type="button" class="btn btn-success" id="add-item-btn">Tambah ke Keranjang</button>
@@ -87,6 +87,20 @@
         }).format(value);
     }
 
+    // Fungsi untuk memformat angka dengan separator koma
+    function formatNumberWithComma(value) {
+        // Hapus semua karakter non-digit
+        let numericValue = value.toString().replace(/\D/g, '');
+
+        // Format dengan separator koma
+        return numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+
+    // Fungsi untuk mengubah format koma menjadi angka
+    function parseFormattedNumber(value) {
+        return parseInt(value.toString().replace(/,/g, '')) || 0;
+    }
+
     document.getElementById('imei-input').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
             e.preventDefault();
@@ -128,7 +142,7 @@
         document.getElementById('preview-imei').textContent = inventory.imei;
         document.getElementById('preview-product').textContent = `${brandName} ${productName}`;
         document.getElementById('default-price').textContent = formatRupiah(defaultPrice);
-        document.getElementById('sale-price').value = defaultPrice;
+        document.getElementById('sale-price').value = formatNumberWithComma(defaultPrice);
 
         document.getElementById('product-preview').style.display = 'block';
         document.getElementById('imei-input').disabled = true;
@@ -136,10 +150,54 @@
         document.getElementById('sale-price').select();
     }
 
+    // Event listener untuk format input harga saat mengetik
+    document.getElementById('sale-price').addEventListener('input', function(e) {
+        let value = e.target.value;
+        let cursorPosition = e.target.selectionStart;
+        let originalLength = value.length;
+
+        // Format dengan koma
+        let formattedValue = formatNumberWithComma(value);
+
+        // Update nilai input
+        e.target.value = formattedValue;
+
+        // Sesuaikan posisi cursor
+        let newLength = formattedValue.length;
+        let lengthDiff = newLength - originalLength;
+        e.target.setSelectionRange(cursorPosition + lengthDiff, cursorPosition + lengthDiff);
+    });
+
+    // Event listener untuk membatasi input hanya angka dan koma
+    document.getElementById('sale-price').addEventListener('keypress', function(e) {
+        // Allow: backspace, delete, tab, escape, enter
+        if ([8, 9, 27, 13, 46].indexOf(e.keyCode) !== -1 ||
+            // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+            (e.keyCode === 65 && e.ctrlKey === true) ||
+            (e.keyCode === 67 && e.ctrlKey === true) ||
+            (e.keyCode === 86 && e.ctrlKey === true) ||
+            (e.keyCode === 88 && e.ctrlKey === true)) {
+            return;
+        }
+
+        // Hanya izinkan angka (0-9)
+        if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+            e.preventDefault();
+        }
+
+        // Handle Enter key untuk add item
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            document.getElementById('add-item-btn').click();
+        }
+    });
+
     document.getElementById('add-item-btn').addEventListener('click', function() {
         if (!currentInventory) return;
 
-        const salePrice = parseInt(document.getElementById('sale-price').value);
+        const salePriceFormatted = document.getElementById('sale-price').value;
+        const salePrice = parseFormattedNumber(salePriceFormatted);
+
         if (!salePrice || salePrice <= 0) return alert('Harga jual tidak valid');
 
         addItemToCart(currentInventory, salePrice);
@@ -148,13 +206,6 @@
 
     document.getElementById('cancel-btn').addEventListener('click', function() {
         resetForm();
-    });
-
-    document.getElementById('sale-price').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            document.getElementById('add-item-btn').click();
-        }
     });
 
     function addItemToCart(inventory, salePrice) {

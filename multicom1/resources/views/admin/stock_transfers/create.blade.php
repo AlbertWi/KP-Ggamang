@@ -44,7 +44,7 @@
 
             {{-- Input IMEI --}}
             <div class="form-group">
-                <label>Daftar IMEI</label>
+                <label>Input IMEI</label>
                 <div id="imei-input-list">
                     @if(old('imeis'))
                         @foreach(old('imeis') as $imei)

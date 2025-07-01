@@ -18,6 +18,7 @@ class AuthController extends Controller
         ],[
             'email.required' => 'Email harus diisi.',
             'email.email' => 'Format email tidak valid. Contoh: user@example.com',
+            'password.required' => 'Password Harus diisi',
         ]);
 
         if (Auth::attempt($credentials)) {
@@ -64,7 +65,7 @@ public function dashboard()
             $pendingRequestsCount = \App\Models\StockRequest::where('to_branch_id', $branchId)
                                                             ->where('status', 'pending')
                                                             ->count();
-            
+
             $pendingRequests = \App\Models\StockRequest::where('to_branch_id', $branchId)
                                                         ->where('status', 'pending')
                                                         ->with(['fromBranch', 'product'])
@@ -102,7 +103,7 @@ public function dashboard()
                             })->filter(fn ($item) => $item['qty'] < 2)->values()
                     ];
                 })->filter(fn ($branch) => $branch['low_stocks']->isNotEmpty());
-            
+
                 return view('dashboard.owner', [
                     'totalStock' => \App\Models\InventoryItem::where('status', 'in_stock')->count(),
                     'totalBranches' => \App\Models\Branch::count(),

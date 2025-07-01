@@ -14,6 +14,10 @@
     </div>
 
     <div class="mb-2">
+        <strong>Cabang:</strong> {{ $sale->branch->name ?? '-' }}
+    </div>
+
+    <div class="mb-2">
         <strong>Jumlah Item:</strong> {{ $sale->items->count() }}
     </div>
 
@@ -36,7 +40,7 @@
                 <tr>
                     <td>{{ $item->product->id ?? '-' }}</td>
                     <td>
-                        {{ $item->product->brand->name ?? '' }} 
+                        {{ $item->product->brand->name ?? '' }}
                         {{ $item->product->model ?? $item->product->name }}
                     </td>
                     <td>{{ $item->imei }}</td>

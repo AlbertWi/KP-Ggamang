@@ -127,6 +127,12 @@
                 <p>Manajemen User</p>
               </a>
             </li>
+            <li class="nav-item">
+                <a href="{{ route('owner.laporan.penjualan') }}" class="nav-link">
+                  <i class="nav-icon fas fa-boxes"></i>
+                  <p>Laporan Penjualan Cabang</p>
+                </a>
+              </li>
           @endif
 
         </ul>

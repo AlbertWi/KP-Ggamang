@@ -53,7 +53,7 @@
                     <input type="number" name="items[0][qty]" class="form-control" placeholder="Qty" min="1">
                 </div>
                 <div class="col-md-3">
-                    <input type="number" name="items[0][price]" class="form-control" placeholder="Harga Satuan" min="0">
+                    <input type="text" name="items[0][price]" class="form-control price-input" placeholder="Harga Satuan">
                 </div>
                 <div class="col-md-2">
                     <button type="button" class="btn btn-danger remove-row">Hapus</button>
@@ -93,7 +93,7 @@
                 <input type="number" name="items[${index}][qty]" class="form-control" placeholder="Qty" min="1">
             </div>
             <div class="col-md-3">
-                <input type="number" name="items[${index}][price]" class="form-control" placeholder="Harga Satuan" min="0">
+                <input type="text" name="items[${index}][price]" class="form-control price-input" placeholder="Harga Satuan">
             </div>
             <div class="col-md-2">
                 <button type="button" class="btn btn-danger remove-row">Hapus</button>
@@ -108,6 +108,26 @@
         if (e.target.classList.contains('remove-row')) {
             e.target.closest('.product-row').remove();
         }
+    });
+
+    // Format angka harga saat input
+    function formatPriceInput(input) {
+        input.value = input.value
+            .replace(/[^0-9]/g, '') // hanya angka
+            .replace(/\B(?=(\d{3})+(?!\d))/g, ","); // tambahkan koma
+    }
+
+    document.addEventListener('input', function(e) {
+        if (e.target.classList.contains('price-input')) {
+            formatPriceInput(e.target);
+        }
+    });
+
+    // Bersihkan koma sebelum form dikirim
+    document.querySelector('form').addEventListener('submit', function() {
+        document.querySelectorAll('.price-input').forEach(function(input) {
+            input.value = input.value.replace(/,/g, '');
+        });
     });
 </script>
 @endpush

@@ -48,6 +48,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('inventory', InventoryItemController::class);
         Route::resource('branches', BranchController::class);
         Route::resource('users', UserController::class);
+        Route::get('/laporan-penjualan', [\App\Http\Controllers\SaleController::class, 'laporanPenjualan'])->name('owner.laporan.penjualan');
     });
 
     // === ADMIN ===
@@ -73,6 +74,6 @@ Route::middleware('auth')->group(function () {
             ->name('stock-requests.approve');
         Route::post('stock-requests/{id}/reject', [StockRequestController::class, 'reject'])
             ->name('stock-requests.reject');
-        
+
     });
 });
